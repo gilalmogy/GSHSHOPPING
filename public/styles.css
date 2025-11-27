@@ -1,0 +1,409 @@
+:root {
+  --footer-h: 92px;
+  /* Light Mode - Bright background, dark text */
+  --bg: #ffffff;
+  --text: #000000;
+  --card: #f8f9fa;
+  --border: #dee2e6;
+  --muted: #6c757d;
+  --accent: #000000;
+  --input-bg: #ffffff;
+  --input-text: #000000;
+  --hover-bg: #e9ecef;
+}
+body.dark-mode {
+  /* Dark Mode - Dark background, white text */
+  --bg: #121212;
+  --text: #ffffff;
+  --card: #1e1e1e;
+  --border: #333333;
+  --muted: #b0b0b0;
+  --accent: #ffffff;
+  --input-bg: #2a2a2a;
+  --input-text: #ffffff;
+  --hover-bg: #2a2a2a;
+}
+* { -webkit-tap-highlight-color: transparent; }
+html, body { 
+  margin:0; 
+  background:var(--bg); 
+  font-family: system-ui, Arial, sans-serif; 
+  color:var(--text); 
+  transition: background .3s, color .3s; 
+}
+body { padding-bottom: calc(var(--footer-h) + env(safe-area-inset-bottom, 0px)); }
+
+/* מניעת תפריט לחיצה ארוכה מחוץ לשדות קלט */
+html, body, img, button, .row, .cat img, .logo { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+input, textarea, select, [contenteditable="true"] { -webkit-touch-callout: default !important; -webkit-user-select: text !important; user-select: text !important; }
+
+header{ 
+  position:sticky; 
+  top:0;
+  z-index:30; 
+  background:var(--card); 
+  border-bottom:1px solid var(--border); 
+  transition:background .3s, border .3s; 
+  color:var(--text);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+.logo{ width:64px; height:64px; object-fit:contain; display:block; margin:8px auto; cursor:pointer; }
+
+/* קטגוריות בתחתית – צמוד (fixed) */
+nav.fixed-footer{
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--footer-h); z-index: 50;
+  background:var(--card); 
+  border-top:1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color:var(--text);
+}
+.cat.selected img{
+  transform: scale(1.06) rotate(-18deg);
+  box-shadow: 0 0 0 1px var(--text) inset;
+  outline:1px solid var(--text); 
+  outline-offset:-1px;
+  transition:.18s;
+}
+.badge{
+  position:absolute; top:-3px; right:-3px;
+  min-width:18px; height:18px; border-radius:999px;
+  font-size:11px;
+  font-weight:600;
+  display:flex; align-items:center; justify-content:center; padding:0 5px;
+}
+.badge.hidden {
+  display: none !important;
+  visibility: hidden !important;
+}
+/* Badge colors - ensure proper contrast */
+.badge {
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+}
+/* In dark mode, ensure badge has visible text */
+body.dark-mode .badge {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+/* In light mode, ensure badge has visible text */
+body:not(.dark-mode) .badge {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Category label text in bottom bar */
+.cat span {
+  color: var(--text) !important;
+}
+
+.modal{ display:none } 
+.modal.show{ display:block !important }
+#authModal.show {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 99999 !important;
+}
+.row { 
+  will-change: transform; 
+  touch-action: pan-y; 
+  background:var(--card); 
+  border:1px solid var(--border); 
+  color:var(--text);
+  transition: background .3s, border .3s, color .3s; 
+}
+.row.urgent { 
+  border-color:#f97316; 
+  box-shadow:0 0 0 1px rgba(249,115,22,0.35); 
+}
+body.dark-mode .row.urgent { 
+  border-color:#ffa500; 
+  box-shadow:0 0 0 1px rgba(255,165,0,0.5); 
+}
+.purchased .title, .purchased .desc { text-decoration: line-through; opacity: 0.6; }
+
+.chart-wrap { position: relative; height: 280px; }
+
+/* Universal text and background classes */
+body.dark-mode *,
+body.dark-mode .bg-white,
+body.dark-mode .modal .bg-white { 
+  background-color: var(--card) !important; 
+  color: var(--text) !important; 
+}
+
+body.dark-mode .text-gray-500,
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-400 { 
+  color: var(--muted) !important; 
+}
+
+body.dark-mode .text-gray-900,
+body.dark-mode .text-gray-700 { 
+  color: var(--text) !important; 
+}
+
+body.dark-mode .border,
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select { 
+  border-color: var(--border) !important; 
+}
+
+/* Inputs */
+input,
+textarea,
+select { 
+  background: var(--input-bg) !important; 
+  color: var(--input-text) !important; 
+  border-color: var(--border) !important; 
+}
+
+input::placeholder,
+textarea::placeholder { 
+  color: var(--muted) !important; 
+  opacity: 0.7;
+}
+
+/* Buttons */
+button {
+  color: var(--text);
+  transition: background .2s, color .2s;
+}
+
+button:hover {
+  background: var(--hover-bg) !important;
+}
+
+/* Delete button - always red */
+#teDelete:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border-color: #dc2626 !important;
+}
+
+/* Cards and containers */
+.bg-white,
+.bg-gray-50,
+.bg-gray-100 {
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
+/* Modals */
+.modal > div > div {
+  background: var(--card) !important;
+  color: var(--text) !important;
+}
+
+/* All text elements */
+p, div, span, h1, h2, h3, h4, h5, h6, label {
+  color: var(--text) !important;
+}
+
+/* Summary cards */
+.summary-card {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Navigation tabs */
+/* Navigation tabs styled in components.css */
+
+/* Open count text */
+#openCount {
+  color: var(--text) !important;
+}
+
+/* Category badge - ensure text is visible with proper contrast */
+.badge {
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+  font-weight: 600;
+  text-shadow: none !important;
+}
+
+/* Status badges - ensure visibility */
+body.dark-mode .bg-yellow-100 { background: #3d2e00 !important; }
+body.dark-mode .text-yellow-800 { color: #fbbf24 !important; }
+body.dark-mode .bg-blue-100 { background: #1e3a5f !important; }
+body.dark-mode .text-blue-800 { color: #60a5fa !important; }
+body.dark-mode .bg-green-100 { background: #1e3d2e !important; }
+body.dark-mode .text-green-800 { color: #34d399 !important; }
+body.dark-mode .bg-gray-100 { background: #2a2a2a !important; }
+body.dark-mode .text-gray-800 { color: #d1d5db !important; }
+
+/* Gantt Chart - Modern Design */
+.gantt-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  margin: 1rem 0;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+body.dark-mode .gantt-container {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.gantt-timeline {
+  min-width: 1200px;
+  position: relative;
+}
+.gantt-header {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 5;
+  background: var(--card);
+}
+.gantt-header-group {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  position: relative;
+  z-index: 5;
+  background: var(--card);
+}
+.gantt-header-year {
+  background: var(--bg);
+  padding: 4px 8px;
+  font-weight: 600;
+  font-size: 11px;
+  text-align: center;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+.gantt-header-month {
+  background: var(--card);
+  padding: 4px 8px;
+  font-weight: 500;
+  font-size: 10px;
+  text-align: center;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+.gantt-header-day {
+  background: var(--card);
+  padding: 6px 4px;
+  text-align: center;
+  color: var(--text);
+  font-size: 10px;
+  min-width: 50px;
+  position: relative;
+  z-index: 6;
+}
+.gantt-header-day-name {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 9px;
+  margin-bottom: 2px;
+}
+.gantt-header-day-num {
+  font-size: 12px;
+  color: var(--text);
+}
+.gantt-header-day.today {
+  background: var(--accent) !important;
+  color: #ffffff !important;
+  border-radius: 4px;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.3);
+  z-index: 7 !important;
+}
+.gantt-header-day.today .gantt-header-day-name,
+.gantt-header-day.today .gantt-header-day-num {
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+/* Today vertical line - spans full height but header text is above it */
+.gantt-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  z-index: 4;
+  pointer-events: none;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+/* Week separator (after Saturday) - only in tasks area, not header */
+.gantt-week-separator {
+  position: absolute;
+  width: 1px;
+  background: var(--border);
+  opacity: 0.3;
+  z-index: 1;
+  pointer-events: none;
+  top: 60px; /* Start below header */
+  bottom: 0;
+}
+
+/* Month separator - only in tasks area */
+.gantt-month-separator {
+  position: absolute;
+  width: 1px;
+  background: var(--border);
+  opacity: 0.5;
+  z-index: 2;
+  pointer-events: none;
+  top: 60px; /* Start below header */
+  bottom: 0;
+}
+
+/* Year separator - only in tasks area */
+.gantt-year-separator {
+  position: absolute;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0.4;
+  z-index: 3;
+  pointer-events: none;
+  top: 60px; /* Start below header */
+  bottom: 0;
+}
+.gantt-task {
+  position: absolute;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  border: 2px solid transparent;
+}
+.gantt-task:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 10;
+}
+.gantt-tasks-container {
+  position: relative;
+  margin-top: 0.5rem;
+}
+
+/* Task Status Colors */
+.task-status-todo { border-left: 4px solid #fbbf24; }
+.task-status-in_progress { border-left: 4px solid #3b82f6; }
+.task-status-finished { border-left: 4px solid #10b981; }
+.task-status-canceled { border-left: 4px solid #6b7280; opacity: 0.6; }
+.task-overdue { border: 2px solid #ef4444 !important; box-shadow: 0 0 0 2px rgba(239,68,68,0.2); }
+
+/* Clickable links in details */
+.task-details a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+body.dark-mode .task-details a {
+  color: #60a5fa;
+}
+

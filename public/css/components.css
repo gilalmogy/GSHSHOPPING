@@ -1,0 +1,1196 @@
+/* Material Design 3 Component Styles */
+
+/* Base Styles */
+* { 
+  -webkit-tap-highlight-color: transparent; 
+  box-sizing: border-box;
+}
+
+html { 
+  margin: 0; 
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+  background: var(--bg); 
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background var(--md-motion-duration-medium2) var(--md-motion-easing-standard);
+}
+
+body { 
+  margin: 0; 
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg); 
+  font-family: 'Roboto', system-ui, -apple-system, sans-serif; 
+  color: var(--text); 
+  transition: background var(--md-motion-duration-medium2) var(--md-motion-easing-standard), 
+              color var(--md-motion-duration-medium2) var(--md-motion-easing-standard);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-bottom: calc(var(--footer-h) + env(safe-area-inset-bottom, 0px)); 
+}
+
+/* Typography - Material Design 3 Hierarchy */
+h1, .display-large {
+  font-size: 57px;
+  line-height: 64px;
+  font-weight: 400;
+  letter-spacing: -0.25px;
+}
+
+h2, .display-medium {
+  font-size: 45px;
+  line-height: 52px;
+  font-weight: 400;
+}
+
+h3, .display-small {
+  font-size: 36px;
+  line-height: 44px;
+  font-weight: 400;
+}
+
+h4, .headline-large {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 400;
+}
+
+h5, .headline-medium {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 400;
+}
+
+h6, .headline-small {
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 400;
+}
+
+.title-large {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 400;
+}
+
+.title-medium {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  letter-spacing: 0.15px;
+}
+
+.title-small {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+
+.body-large {
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+}
+
+.body-medium {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 400;
+  letter-spacing: 0.25px;
+}
+
+.body-small {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  letter-spacing: 0.4px;
+}
+
+.label-large {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+
+.label-medium {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.label-small {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Prevent long-press menu outside input fields */
+html, body, img, button, .row, .cat img, .logo { 
+  -webkit-touch-callout: none; 
+  -webkit-user-select: none; 
+  user-select: none; 
+}
+
+input, textarea, select, [contenteditable="true"] { 
+  -webkit-touch-callout: default !important; 
+  -webkit-user-select: text !important; 
+  user-select: text !important; 
+}
+
+/* Header - Mobile Friendly Surface */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  transition: background var(--md-motion-duration-medium2) var(--md-motion-easing-standard),
+              border var(--md-motion-duration-medium2) var(--md-motion-easing-standard);
+  color: var(--text);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.logo { 
+  width: 64px; 
+  height: 64px; 
+  object-fit: contain; 
+  display: block; 
+  margin: 8px auto; 
+  cursor: pointer;
+  transition: transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+}
+
+.logo:active {
+  transform: scale(0.95);
+}
+
+/* Fixed Footer Navigation - Material Design 3 Surface */
+nav.fixed-footer {
+  position: fixed; 
+  bottom: 0; 
+  left: 0; 
+  right: 0;
+  height: var(--footer-h); 
+  z-index: 50;
+  background: var(--md-sys-color-surface); 
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color: var(--text);
+  box-shadow: var(--md-elevation-3);
+  /* Allow badges to overflow upward - CRITICAL for badge visibility */
+  overflow: visible !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  /* Ensure container doesn't clip children */
+  contain: none !important;
+  /* Ensure badges can extend beyond nav boundaries */
+  clip: none !important;
+  clip-path: none !important;
+  /* Extend background slightly upward to cover badges if needed */
+  padding-top: 12px !important;
+  box-sizing: content-box !important;
+}
+
+/* Category Selection - Material Design 3 State Layer */
+/* Category Images - Perfect Circles */
+.cat {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 64px !important;
+  flex-shrink: 0 !important;
+  overflow: visible !important;
+}
+
+/* Ensure image is the first visual element and properly sized */
+.cat > img:first-of-type,
+.cat > img {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Force all category images to be perfect circles - fit container without squashing */
+.cat img,
+.cat img.w-14,
+.cat img[class*="w-14"],
+.cat img[class*="h-14"],
+.cat img[class*="rounded-full"],
+.cat img[class*="object-cover"],
+.cat img[class*="border"] {
+  /* Fixed dimensions - perfect square */
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  max-width: 56px !important;
+  max-height: 56px !important;
+  
+  /* Maintain aspect ratio and fill circle */
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  
+  /* Perfect circle shape */
+  border-radius: 50% !important;
+  
+  /* Layout properties */
+  display: block !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  
+  /* Prevent overflow and scrollbars */
+  overflow: hidden !important;
+  clip-path: circle(50%) !important;
+  
+  /* Image rendering */
+  image-rendering: auto !important;
+}
+
+/* Ensure border doesn't affect the circle size */
+.cat img.border,
+.cat img[class*="border"] {
+  border-width: 1px !important;
+  box-sizing: border-box !important;
+  width: 56px !important;
+  height: 56px !important;
+}
+
+/* Ensure the cat container doesn't cause overflow and allows badge to show */
+.cat {
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 1 !important;
+  margin: 0 !important;
+  /* Ensure badges can overflow beyond the cat boundaries */
+  min-width: 64px !important;
+  flex-shrink: 0 !important;
+  /* Create new stacking context for badge positioning */
+  transform: translateZ(0) !important;
+  /* Ensure container doesn't clip children */
+  contain: none !important;
+}
+
+/* Hide scrollbars but allow scrolling */
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Prevent any scrollbars on category containers but allow badge overflow */
+nav.fixed-footer {
+  /* Allow badges to extend upward beyond the nav container */
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  overflow: visible !important;
+  /* Add top padding to accommodate badges that extend upward (badge is at top: -4px) */
+  padding: 12px 0 0 0 !important;
+  box-sizing: content-box !important;
+  /* Smooth scrolling on mobile */
+  -webkit-overflow-scrolling: touch !important;
+  scroll-behavior: smooth !important;
+  /* Ensure badges can extend beyond container */
+  clip: none !important;
+  clip-path: none !important;
+  /* Ensure container doesn't clip children */
+  contain: none !important;
+}
+
+nav.fixed-footer > div {
+  /* Horizontal scrolling for categories, vertical overflow for badges */
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  overflow: visible !important;
+  /* Allow vertical overflow */
+  padding: 0 !important;
+  /* Allow badges to overflow */
+  clip: none !important;
+  clip-path: none !important;
+  contain: none !important;
+  /* Ensure this doesn't clip children */
+  height: 100% !important;
+  /* Ensure badges can extend upward beyond this container */
+  min-height: 100% !important;
+}
+
+nav.fixed-footer > div > div {
+  /* Horizontal scrolling container - but allow vertical overflow for badges */
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  overflow: visible !important;
+  /* Allow vertical overflow for badges */
+  padding: 0 !important;
+  /* Allow badges to overflow vertically */
+  clip: none !important;
+  clip-path: none !important;
+  contain: none !important;
+  /* Ensure this doesn't clip children */
+  height: 100% !important;
+  /* Ensure badges can extend upward beyond this container */
+  min-height: 100% !important;
+}
+
+/* Override any inline overflow classes on nested divs - CRITICAL for badge visibility */
+nav.fixed-footer > div > div.overflow-x-auto,
+nav.fixed-footer > div > div.no-scrollbar,
+nav.fixed-footer > div > div.h-full {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  overflow: visible !important;
+  /* Force vertical overflow to be visible */
+  clip: none !important;
+  clip-path: none !important;
+  contain: none !important;
+}
+
+/* Category list containers - allow badges to overflow */
+#shoppingCategoriesList,
+#tasksCategoriesList,
+#notesCategoriesList,
+#remindersCategoriesList {
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  /* Add padding: top for badges extending upward (badge at top: -4px, so need at least 12px),
+     sides for badges at edges (badge extends 4px beyond right edge, so need at least 16px padding) */
+  /* Use responsive padding that adapts to screen size */
+  padding: 16px 32px 8px 32px !important;
+  /* On smaller screens, reduce horizontal padding but keep enough for badges */
+  min-height: 100% !important;
+  /* Horizontal scrolling enabled, vertical overflow allowed for badges */
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+  overflow: visible !important;
+  position: relative !important;
+  /* Ensure badges at edges are visible */
+  margin: 0 !important;
+  /* Smooth scrolling on mobile */
+  -webkit-overflow-scrolling: touch !important;
+  scroll-behavior: smooth !important;
+  /* Prevent clipping of badges - CRITICAL */
+  clip: none !important;
+  clip-path: none !important;
+  contain: none !important;
+  /* Ensure container allows overflow in all directions */
+  box-sizing: border-box !important;
+  /* Create stacking context for badges */
+  isolation: isolate !important;
+}
+
+/* Responsive padding for smaller screens */
+@media (max-width: 640px) {
+  #shoppingCategoriesList,
+  #tasksCategoriesList,
+  #notesCategoriesList,
+  #remindersCategoriesList {
+    padding: 16px 24px 8px 24px !important;
+  }
+}
+
+/* Category color divs (for task/reminder categories without images) */
+.cat > div[class*="w-14"],
+.cat > div[class*="h-14"] {
+  width: 56px !important;
+  height: 56px !important;
+  min-width: 56px !important;
+  min-height: 56px !important;
+  max-width: 56px !important;
+  max-height: 56px !important;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+}
+
+.cat.selected img {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 2px var(--md-sys-color-primary);
+  transition: transform var(--md-motion-duration-short4) var(--md-motion-easing-emphasized),
+              box-shadow var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+}
+
+.cat {
+  position: relative;
+  transition: transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+}
+
+.cat:active {
+  transform: scale(0.95);
+}
+
+/* Badge - Material Design 3 Badge - White text on black background */
+.badge {
+  position: absolute !important; 
+  top: -4px !important; 
+  right: -4px !important;
+  min-width: 20px !important; 
+  height: 20px !important; 
+  border-radius: 10px !important;
+  background: #000000 !important; 
+  color: #ffffff !important; 
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  display: flex !important; 
+  align-items: center !important; 
+  justify-content: center !important; 
+  padding: 0 6px !important;
+  box-shadow: var(--md-elevation-2) !important;
+  letter-spacing: 0.5px !important;
+  z-index: 200 !important;
+  pointer-events: none !important;
+  /* Ensure badge is not clipped - allow it to overflow container */
+  overflow: visible !important;
+  /* Ensure badge doesn't get cut on edges */
+  white-space: nowrap !important;
+  text-overflow: clip !important;
+  /* Ensure badge can extend beyond parent boundaries */
+  clip: none !important;
+  clip-path: none !important;
+  /* Force badge to be visible even if parent clips */
+  transform: translateZ(0) !important;
+}
+
+.badge.hidden {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+.cat span {
+  color: var(--text) !important;
+}
+
+/* Modals - Material Design 3 Dialog */
+.modal { 
+  display: none; 
+}
+
+.modal.show { 
+  display: block !important; 
+  animation: fadeIn var(--md-motion-duration-medium2) var(--md-motion-easing-decelerated);
+}
+
+/* Force auth modal to always show when it has the show class */
+#authModal.show {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 99999 !important;
+}
+
+.modal > div > div {
+  animation: slideUp var(--md-motion-duration-medium3) var(--md-motion-easing-emphasized);
+  border-radius: var(--md-shape-corner-extra-large);
+  box-shadow: var(--md-elevation-5);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Cards/Rows - Material Design 3 Cards */
+.row { 
+  will-change: transform; 
+  touch-action: pan-y; 
+  background: var(--md-sys-color-surface); 
+  border: 1px solid var(--md-sys-color-outline-variant); 
+  border-radius: var(--md-shape-corner-medium);
+  color: var(--text);
+  transition: background var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              border var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              color var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              box-shadow var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+  box-shadow: var(--md-elevation-1);
+  position: relative;
+  overflow: hidden;
+}
+
+.row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--md-sys-color-primary);
+  opacity: 0;
+  transition: opacity var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+  pointer-events: none;
+}
+
+.row:hover::before {
+  opacity: 0.08;
+}
+
+.row:active::before {
+  opacity: 0.12;
+}
+
+.row:hover {
+  box-shadow: var(--md-elevation-2);
+  transform: translateY(-1px);
+}
+
+.row.urgent { 
+  border-left: 5px solid #dc2626 !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3) !important;
+  background: rgba(220, 38, 38, 0.05) !important;
+}
+
+.row.urgent::before {
+  background: #dc2626;
+}
+
+.row.urgent:hover {
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4) !important;
+}
+
+.purchased .title, .purchased .desc { 
+  text-decoration: line-through; 
+  opacity: 0.6; 
+}
+
+/* Buttons - Material Design 3 Button Styles */
+button {
+  color: var(--text);
+  border-radius: var(--md-shape-corner-extra-small);
+  font-family: 'Roboto', system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  text-transform: uppercase;
+  font-size: 14px;
+  line-height: 20px;
+  padding: 10px 24px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: background var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              color var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              box-shadow var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+  outline: none;
+}
+
+/* Ripple Effect */
+button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition: width var(--md-motion-duration-medium2) var(--md-motion-easing-standard),
+              height var(--md-motion-duration-medium2) var(--md-motion-easing-standard);
+  pointer-events: none;
+}
+
+button:active::after {
+  width: 300px;
+  height: 300px;
+  opacity: 0;
+}
+
+/* Filled Button (Primary) */
+button.bg-black,
+button[style*="background:var(--accent)"],
+button[style*="background:black"] {
+  background: var(--md-sys-color-primary) !important;
+  color: var(--md-sys-color-on-primary) !important;
+  box-shadow: var(--md-elevation-2);
+}
+
+button.bg-black:hover,
+button[style*="background:var(--accent)"]:hover {
+  box-shadow: var(--md-elevation-3);
+  transform: translateY(-1px);
+}
+
+button.bg-black:active {
+  box-shadow: var(--md-elevation-1);
+  transform: translateY(0);
+}
+
+/* Elevated Button */
+button.border:not(.bg-black):not(.nav-tab) {
+  background: var(--md-sys-color-surface) !important;
+  color: var(--md-sys-color-primary) !important;
+  border: 1px solid var(--md-sys-color-outline) !important;
+  box-shadow: var(--md-elevation-1);
+}
+
+button.border:hover:not(.bg-black):not(.nav-tab) {
+  box-shadow: var(--md-elevation-2);
+  background: var(--md-sys-color-surface-variant) !important;
+}
+
+/* Text Button */
+button:not(.border):not(.bg-black):not(.nav-tab):not(.cat) {
+  background: transparent !important;
+  color: var(--md-sys-color-primary) !important;
+}
+
+button:not(.border):not(.bg-black):not(.nav-tab):not(.cat):hover {
+  background: var(--md-sys-color-primary-container) !important;
+  opacity: 0.08;
+}
+
+/* Top Navigation Tabs - SynQ Style */
+.nav-tab {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  text-transform: none;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  padding: 8px 12px 10px 12px !important;
+  position: relative;
+  cursor: pointer;
+}
+
+.nav-tab.active {
+  background: transparent !important;
+  color: #2196F3 !important;
+  border-bottom: 2px solid #2196F3 !important;
+  box-shadow: none !important;
+  font-weight: 500;
+}
+
+.nav-tab:not(.active) {
+  color: #666666 !important;
+}
+
+body.dark-mode .nav-tab:not(.active) {
+  color: #B0B0B0 !important;
+}
+
+.nav-tab:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+body.dark-mode .nav-tab:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.nav-tab svg,
+.nav-tab span {
+  color: currentColor !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+
+.nav-tab.active svg {
+  color: #2196F3 !important;
+  stroke: #2196F3 !important;
+}
+
+/* Inputs - Material Design 3 Filled Text Field */
+input,
+textarea,
+select { 
+  background: var(--input-bg) !important; 
+  color: var(--input-text) !important; 
+  border: 1px solid var(--md-sys-color-outline) !important;
+  border-radius: var(--md-shape-corner-extra-small);
+  padding: 12px 16px;
+  font-size: 16px;
+  line-height: 24px;
+  transition: border-color var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              background var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--md-sys-color-primary) !important;
+  border-width: 2px !important;
+  padding: 11px 15px;
+}
+
+input::placeholder,
+textarea::placeholder { 
+  color: var(--muted) !important; 
+  opacity: 0.6;
+}
+
+/* Cards and Containers */
+.bg-white,
+.bg-gray-50,
+.bg-gray-100 {
+  background: var(--md-sys-color-surface) !important;
+  color: var(--text) !important;
+  border-radius: var(--md-shape-corner-medium);
+  box-shadow: var(--md-elevation-1);
+}
+
+/* Summary Cards */
+.summary-card {
+  background: var(--md-sys-color-surface) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--md-sys-color-outline-variant) !important;
+  border-radius: var(--md-shape-corner-large);
+  box-shadow: var(--md-elevation-1);
+  transition: box-shadow var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+}
+
+.summary-card:hover {
+  box-shadow: var(--md-elevation-2);
+  transform: translateY(-2px);
+}
+
+/* Charts */
+.chart-wrap { 
+  position: relative; 
+  height: 280px;
+  border-radius: var(--md-shape-corner-medium);
+  overflow: hidden;
+}
+
+/* Gantt Chart Styles - Material Design 3 */
+.gantt-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  margin: 1rem 0;
+  background: var(--md-sys-color-surface);
+  border-radius: var(--md-shape-corner-large);
+  padding: 1rem;
+  box-shadow: var(--md-elevation-2);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  direction: ltr;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gantt-timeline {
+  min-width: 1200px;
+  position: relative;
+  width: 100%;
+  direction: ltr;
+}
+
+.gantt-header {
+  display: flex;
+  border-bottom: 2px solid var(--md-sys-color-outline-variant);
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 5;
+  background: var(--md-sys-color-surface);
+  border-radius: var(--md-shape-corner-small);
+  direction: ltr !important;
+  flex-direction: column !important;
+  width: 100%;
+}
+
+.gantt-header-group {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--md-sys-color-outline-variant);
+  position: relative;
+  z-index: 5;
+  background: var(--md-sys-color-surface);
+}
+
+.gantt-header-row {
+  display: flex;
+  flex-direction: row;
+  direction: ltr !important;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.gantt-header-year-row {
+  background: var(--md-sys-color-surface-variant);
+}
+
+.gantt-header-month-row {
+  background: var(--md-sys-color-surface);
+}
+
+.gantt-header-day-row {
+  background: var(--md-sys-color-surface);
+  border-bottom: 2px solid var(--md-sys-color-outline-variant);
+}
+
+.gantt-header-year {
+  background: var(--md-sys-color-surface-variant);
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 13px;
+  text-align: center;
+  color: var(--text);
+  border-right: 1px solid var(--md-sys-color-outline-variant);
+  flex-shrink: 0;
+  direction: ltr !important;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gantt-header-month {
+  background: var(--md-sys-color-surface);
+  padding: 6px 10px;
+  font-weight: 500;
+  font-size: 12px;
+  text-align: center;
+  color: var(--text);
+  border-right: 1px solid var(--md-sys-color-outline-variant);
+  flex-shrink: 0;
+  direction: ltr !important;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gantt-header-day {
+  background: var(--md-sys-color-surface);
+  padding: 8px 6px;
+  text-align: center;
+  color: var(--text);
+  font-size: 11px;
+  min-width: 50px;
+  position: relative;
+  z-index: 6;
+  border-radius: var(--md-shape-corner-extra-small);
+  direction: ltr !important;
+  flex-shrink: 0;
+  border-right: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.gantt-header-day-name {
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 10px;
+  margin-bottom: 2px;
+}
+
+.gantt-header-day-num {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.gantt-header-day.today {
+  background: var(--md-sys-color-primary-container) !important;
+  color: var(--md-sys-color-on-primary-container) !important;
+  border-radius: var(--md-shape-corner-extra-small);
+  font-weight: 600;
+  box-shadow: var(--md-elevation-1);
+  z-index: 7 !important;
+}
+
+.gantt-header-day.today .gantt-header-day-name,
+.gantt-header-day.today .gantt-header-day-num {
+  color: var(--md-sys-color-on-primary-container) !important;
+  font-weight: 600;
+}
+
+.gantt-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--md-sys-color-primary);
+  z-index: 4;
+  pointer-events: none;
+  box-shadow: 0 0 8px var(--md-sys-color-primary);
+}
+
+.gantt-week-separator {
+  position: absolute;
+  width: 1px;
+  background: var(--md-sys-color-outline-variant);
+  opacity: 0.3;
+  z-index: 1;
+  pointer-events: none;
+  top: 60px;
+  bottom: 0;
+}
+
+.gantt-month-separator {
+  position: absolute;
+  width: 1px;
+  background: var(--md-sys-color-outline);
+  opacity: 0.5;
+  z-index: 2;
+  pointer-events: none;
+  top: 60px;
+  bottom: 0;
+}
+
+.gantt-year-separator {
+  position: absolute;
+  width: 2px;
+  background: var(--md-sys-color-primary);
+  opacity: 0.4;
+  z-index: 3;
+  pointer-events: none;
+  top: 60px;
+  bottom: 0;
+}
+
+.gantt-task {
+  position: absolute;
+  height: 36px;
+  border-radius: var(--md-shape-corner-small);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+  box-shadow: var(--md-elevation-2);
+  border: none;
+}
+
+.gantt-task:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--md-elevation-3);
+  z-index: 10;
+}
+
+/* Enhanced task bar content styling */
+.gantt-task {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gantt-task .gantt-task-name {
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gantt-task .gantt-task-info {
+  font-size: 10px;
+  opacity: 0.9;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.gantt-tasks-container {
+  position: relative;
+  margin-top: 0.5rem;
+  direction: ltr;
+}
+
+/* Task Status Colors */
+.task-status-todo { 
+  background: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
+}
+
+.task-status-in_progress { 
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.task-status-finished { 
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+.task-status-canceled { 
+  background: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  opacity: 0.6; 
+}
+
+.task-overdue { 
+  border: 2px solid var(--md-sys-color-error) !important; 
+  box-shadow: 0 0 0 2px var(--md-sys-color-error-container);
+  background: var(--md-sys-color-error-container);
+  color: var(--md-sys-color-on-error-container);
+}
+
+.task-details a {
+  color: var(--md-sys-color-primary);
+  text-decoration: underline;
+  transition: color var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+}
+
+.task-details a:hover {
+  color: var(--md-sys-color-primary-container);
+}
+
+/* Delete Button - Error State */
+#teDelete:hover,
+button[style*="background:#dc2626"]:hover,
+button[style*="background:#ef4444"]:hover {
+  background: var(--md-sys-color-error) !important;
+  color: var(--md-sys-color-on-error) !important;
+  border-color: var(--md-sys-color-error) !important;
+  box-shadow: var(--md-elevation-2);
+}
+
+/* Note Color Option Buttons - Always Visible */
+/* Color Option Buttons - Always Visible (for all category editors) */
+.color-option,
+.note-color-option {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: inline-block !important;
+  padding: 0 !important;
+  border: 2px solid !important;
+  cursor: pointer !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+  position: relative !important;
+  overflow: visible !important;
+  /* Preserve background color from inline styles */
+  background-color: inherit !important;
+  background-image: none !important;
+  /* Reset any global button styles that might interfere */
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+  font-weight: normal !important;
+}
+
+.color-option:hover,
+.note-color-option:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  /* Keep background color on hover */
+  background-color: inherit !important;
+}
+
+.color-option:active,
+.note-color-option:active {
+  transform: scale(0.95) !important;
+  background-color: inherit !important;
+}
+
+/* Remove ripple effect from color buttons */
+.color-option::after,
+.note-color-option::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Universal Dark Mode Overrides */
+html.dark-mode,
+body.dark-mode {
+  background-color: var(--bg) !important;
+}
+
+body.dark-mode *,
+body.dark-mode .bg-white,
+body.dark-mode .modal .bg-white { 
+  background-color: var(--card) !important; 
+  color: var(--text) !important; 
+}
+
+body.dark-mode .text-gray-500,
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-400 { 
+  color: var(--muted) !important; 
+}
+
+body.dark-mode .text-gray-900,
+body.dark-mode .text-gray-700 { 
+  color: var(--text) !important; 
+}
+
+body.dark-mode .border,
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select { 
+  border-color: var(--border) !important; 
+}
+
+/* Status Badges */
+body.dark-mode .bg-yellow-100 { background: #3d2e00 !important; }
+body.dark-mode .text-yellow-800 { color: #fbbf24 !important; }
+body.dark-mode .bg-blue-100 { background: #1e3a5f !important; }
+body.dark-mode .text-blue-800 { color: #60a5fa !important; }
+body.dark-mode .bg-green-100 { background: #1e3d2e !important; }
+body.dark-mode .text-green-800 { color: #34d399 !important; }
+body.dark-mode .bg-gray-100 { background: #2a2a2a !important; }
+body.dark-mode .text-gray-800 { color: #d1d5db !important; }
+
+/* Text Elements */
+p, div, span, h1, h2, h3, h4, h5, h6, label {
+  color: var(--text) !important;
+}
+
+#openCount {
+  color: var(--text) !important;
+}
+
+/* Toast - Always white text on black background */
+#toast {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.dark-mode #toast {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Loading Animation - Material Design 3 */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+  animation: spin var(--md-motion-duration-long2) linear infinite;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus Visible - Material Design 3 */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}

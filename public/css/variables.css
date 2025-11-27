@@ -1,0 +1,139 @@
+/* Material Design 3 (Material You) Design Tokens */
+
+:root {
+  --footer-h: 92px;
+  
+  /* Material Design 3 Color System - Light Mode */
+  --md-sys-color-primary: #6750A4;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #EADDFF;
+  --md-sys-color-on-primary-container: #21005D;
+  
+  --md-sys-color-secondary: #625B71;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #E8DEF8;
+  --md-sys-color-on-secondary-container: #1D192B;
+  
+  --md-sys-color-tertiary: #7D5260;
+  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-tertiary-container: #FFD8E4;
+  --md-sys-color-on-tertiary-container: #31111D;
+  
+  --md-sys-color-error: #BA1A1A;
+  --md-sys-color-on-error: #FFFFFF;
+  --md-sys-color-error-container: #FFDAD6;
+  --md-sys-color-on-error-container: #410002;
+  
+  --md-sys-color-surface: #FFFBFE;
+  --md-sys-color-on-surface: #1C1B1F;
+  --md-sys-color-surface-variant: #E7E0EC;
+  --md-sys-color-on-surface-variant: #49454F;
+  
+  --md-sys-color-outline: #79747E;
+  --md-sys-color-outline-variant: #CAC4D0;
+  
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-scrim: #000000;
+  
+  /* Legacy variables mapped to Material Design 3 */
+  --bg: var(--md-sys-color-surface);
+  --text: var(--md-sys-color-on-surface);
+  --card: var(--md-sys-color-surface);
+  --border: var(--md-sys-color-outline-variant);
+  --muted: var(--md-sys-color-on-surface-variant);
+  --accent: var(--md-sys-color-primary);
+  --input-bg: var(--md-sys-color-surface);
+  --input-text: var(--md-sys-color-on-surface);
+  --hover-bg: var(--md-sys-color-surface-variant);
+  
+  /* Material Design 3 Elevation Shadows */
+  --md-elevation-0: none;
+  --md-elevation-1: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --md-elevation-2: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --md-elevation-3: 0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+  --md-elevation-4: 0px 2px 3px 0px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15);
+  --md-elevation-5: 0px 4px 4px 0px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15);
+  
+  /* Material Design 3 Shape Tokens */
+  --md-shape-corner-none: 0px;
+  --md-shape-corner-extra-small: 4px;
+  --md-shape-corner-small: 8px;
+  --md-shape-corner-medium: 12px;
+  --md-shape-corner-large: 16px;
+  --md-shape-corner-extra-large: 28px;
+  
+  /* Material Design 3 Motion Tokens */
+  --md-motion-duration-short1: 50ms;
+  --md-motion-duration-short2: 100ms;
+  --md-motion-duration-short3: 150ms;
+  --md-motion-duration-short4: 200ms;
+  --md-motion-duration-medium1: 250ms;
+  --md-motion-duration-medium2: 300ms;
+  --md-motion-duration-medium3: 350ms;
+  --md-motion-duration-medium4: 400ms;
+  --md-motion-duration-long1: 450ms;
+  --md-motion-duration-long2: 500ms;
+  --md-motion-duration-long3: 550ms;
+  --md-motion-duration-long4: 600ms;
+  --md-motion-duration-extra-long1: 700ms;
+  --md-motion-duration-extra-long2: 800ms;
+  --md-motion-duration-extra-long3: 900ms;
+  --md-motion-duration-extra-long4: 1000ms;
+  
+  --md-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-motion-easing-emphasized: cubic-bezier(0.2, 0, 1, 1);
+  --md-motion-easing-decelerated: cubic-bezier(0, 0, 0.2, 1);
+  --md-motion-easing-accelerated: cubic-bezier(0.4, 0, 1, 1);
+}
+
+body.dark-mode {
+  /* Material Design 3 Color System - Dark Mode */
+  --md-sys-color-primary: #D0BCFF;
+  --md-sys-color-on-primary: #381E72;
+  --md-sys-color-primary-container: #4F378B;
+  --md-sys-color-on-primary-container: #EADDFF;
+  
+  --md-sys-color-secondary: #CCC2DC;
+  --md-sys-color-on-secondary: #332D41;
+  --md-sys-color-secondary-container: #4A4458;
+  --md-sys-color-on-secondary-container: #E8DEF8;
+  
+  --md-sys-color-tertiary: #EFB8C8;
+  --md-sys-color-on-tertiary: #492532;
+  --md-sys-color-tertiary-container: #633B48;
+  --md-sys-color-on-tertiary-container: #FFD8E4;
+  
+  --md-sys-color-error: #FFB4AB;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000A;
+  --md-sys-color-on-error-container: #FFDAD6;
+  
+  --md-sys-color-surface: #1C1B1F;
+  --md-sys-color-on-surface: #E6E1E5;
+  --md-sys-color-surface-variant: #49454F;
+  --md-sys-color-on-surface-variant: #CAC4D0;
+  
+  --md-sys-color-outline: #938F99;
+  --md-sys-color-outline-variant: #49454F;
+  
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-scrim: #000000;
+  
+  /* Legacy variables mapped to Material Design 3 */
+  --bg: var(--md-sys-color-surface);
+  --text: var(--md-sys-color-on-surface);
+  --card: #1E1E1E;
+  --border: var(--md-sys-color-outline-variant);
+  --muted: var(--md-sys-color-on-surface-variant);
+  --accent: var(--md-sys-color-primary);
+  --input-bg: #2A2A2A;
+  --input-text: var(--md-sys-color-on-surface);
+  --hover-bg: var(--md-sys-color-surface-variant);
+  
+  /* Dark mode elevation shadows (lighter) */
+  --md-elevation-1: 0px 1px 2px 0px rgba(0, 0, 0, 0.5), 0px 1px 3px 1px rgba(0, 0, 0, 0.3);
+  --md-elevation-2: 0px 1px 2px 0px rgba(0, 0, 0, 0.5), 0px 2px 6px 2px rgba(0, 0, 0, 0.3);
+  --md-elevation-3: 0px 1px 3px 0px rgba(0, 0, 0, 0.5), 0px 4px 8px 3px rgba(0, 0, 0, 0.3);
+  --md-elevation-4: 0px 2px 3px 0px rgba(0, 0, 0, 0.5), 0px 6px 10px 4px rgba(0, 0, 0, 0.3);
+  --md-elevation-5: 0px 4px 4px 0px rgba(0, 0, 0, 0.5), 0px 8px 12px 6px rgba(0, 0, 0, 0.3);
+}

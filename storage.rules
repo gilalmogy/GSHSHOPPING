@@ -1,0 +1,118 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to get user ID
+    function getUserId() {
+      return request.auth.uid;
+    }
+    
+    // Helper function to validate image
+    function isValidImage() {
+      return request.resource.size < 5 * 1024 * 1024 && // 5MB limit
+             request.resource.contentType.matches('image/.*');
+    }
+    
+    // Note: Storage rules cannot access Firestore documents directly to validate household membership
+    // Full household membership validation happens in application logic and Firestore security rules
+    // Storage rules here ensure proper path structure and authentication only
+    
+    // User profile images (not household-scoped)
+    match /users/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+                      userId == getUserId() && 
+                      isValidImage();
+    }
+    
+    // All household-scoped images - authenticated users can access their household's images
+    // Note: Full household membership validation happens in application logic
+    // Storage rules here ensure proper path structure and authentication
+    match /households/{householdId}/categories/{categoryId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImage();
+    }
+    
+    match /households/{householdId}/items/{itemId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImage();
+    }
+    
+    match /households/{householdId}/taskCategories/{categoryId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImage();
+    }
+    
+    match /households/{householdId}/tasks/{taskId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImage();
+    }
+    
+    match /households/{householdId}/noteCategories/{categoryId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImage();
+    }
+    
+    match /households/{householdId}/notes/{noteId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImage();
+    }
+    
+    match /households/{householdId}/reminderCategories/{categoryId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImage();
+    }
+    
+    match /households/{householdId}/reminders/{reminderId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidImage();
+    }
+    
+    // Legacy paths (backwards compatibility - deny write, allow read if authenticated)
+    // These should be migrated to household-scoped paths
+    match /categories/{categoryId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Deny writes to legacy paths
+    }
+    
+    match /items/{itemId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    match /taskCategories/{categoryId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    match /tasks/{taskId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    match /noteCategories/{categoryId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    match /notes/{noteId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    match /reminderCategories/{categoryId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    match /reminders/{reminderId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+  }
+}
