@@ -1,12 +1,13 @@
 {
   "name": "GSH",
   "short_name": "GSH",
-  "start_url": ".",
+  "start_url": "/?v=0.9",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "description": "אפליקציית קניות חכמה לניהול רשימות, קטגוריות וסטטיסטיקות.",
+  "version": "0.9",
   "icons": [
     {
       "src": "/GSH-192.png",

@@ -10,7 +10,8 @@ html {
   margin: 0; 
   padding: 0;
   width: 100%;
-  min-height: 100%;
+  height: 100%;
+  overflow: hidden;
   background: var(--bg); 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -21,7 +22,8 @@ body {
   margin: 0; 
   padding: 0;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--bg); 
   font-family: 'Roboto', system-ui, -apple-system, sans-serif; 
   color: var(--text); 
@@ -29,7 +31,19 @@ body {
               color var(--md-motion-duration-medium2) var(--md-motion-easing-standard);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  padding-bottom: calc(var(--footer-h) + env(safe-area-inset-bottom, 0px)); 
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* App Content Container - handles scrolling */
+#appContent {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Typography - Material Design 3 Hierarchy */
@@ -158,6 +172,54 @@ header {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
+/* Splash Screen - Material 3 full-screen surface */
+#splashScreen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: var(--md-sys-color-surface);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  transition: opacity var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+  overflow: hidden;
+}
+
+#splashScreen .splash-center {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+#splashScreen .splash-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+#splashScreen .splash-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+#splashScreen .splash-footer {
+  padding-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
 .logo { 
   width: 64px; 
   height: 64px; 
@@ -185,22 +247,17 @@ nav.fixed-footer {
   padding-bottom: env(safe-area-inset-bottom, 0px);
   color: var(--text);
   box-shadow: var(--md-elevation-3);
-  /* Allow badges to overflow upward - CRITICAL for badge visibility */
   overflow: visible !important;
   overflow-x: auto !important;
   overflow-y: visible !important;
-  /* Ensure container doesn't clip children */
   contain: none !important;
-  /* Ensure badges can extend beyond nav boundaries */
   clip: none !important;
   clip-path: none !important;
-  /* Extend background slightly upward to cover badges if needed */
   padding-top: 12px !important;
   box-sizing: content-box !important;
 }
 
 /* Category Selection - Material Design 3 State Layer */
-/* Category Images - Perfect Circles */
 .cat {
   display: flex !important;
   flex-direction: column !important;
@@ -208,16 +265,21 @@ nav.fixed-footer {
   width: 64px !important;
   flex-shrink: 0 !important;
   overflow: visible !important;
+  position: relative !important;
+  z-index: 1 !important;
+  margin: 0 !important;
+  min-width: 64px !important;
+  transform: translateZ(0) !important;
+  contain: none !important;
 }
 
-/* Ensure image is the first visual element and properly sized */
 .cat > img:first-of-type,
 .cat > img {
   position: relative !important;
   z-index: 1 !important;
 }
 
-/* Force all category images to be perfect circles - fit container without squashing */
+/* Force all category images to be perfect circles */
 .cat img,
 .cat img.w-14,
 .cat img[class*="w-14"],
@@ -225,138 +287,33 @@ nav.fixed-footer {
 .cat img[class*="rounded-full"],
 .cat img[class*="object-cover"],
 .cat img[class*="border"] {
-  /* Fixed dimensions - perfect square */
   width: 56px !important;
   height: 56px !important;
   min-width: 56px !important;
   min-height: 56px !important;
   max-width: 56px !important;
   max-height: 56px !important;
-  
-  /* Maintain aspect ratio and fill circle */
   aspect-ratio: 1 / 1 !important;
   object-fit: cover !important;
   object-position: center center !important;
-  
-  /* Perfect circle shape */
   border-radius: 50% !important;
-  
-  /* Layout properties */
   display: block !important;
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
-  
-  /* Prevent overflow and scrollbars */
   overflow: hidden !important;
   clip-path: circle(50%) !important;
-  
-  /* Image rendering */
   image-rendering: auto !important;
 }
 
-/* Ensure border doesn't affect the circle size */
 .cat img.border,
 .cat img[class*="border"] {
   border-width: 1px !important;
   box-sizing: border-box !important;
   width: 56px !important;
   height: 56px !important;
-}
-
-/* Ensure the cat container doesn't cause overflow and allows badge to show */
-.cat {
-  overflow: visible !important;
-  position: relative !important;
-  z-index: 1 !important;
-  margin: 0 !important;
-  /* Ensure badges can overflow beyond the cat boundaries */
-  min-width: 64px !important;
-  flex-shrink: 0 !important;
-  /* Create new stacking context for badge positioning */
-  transform: translateZ(0) !important;
-  /* Ensure container doesn't clip children */
-  contain: none !important;
-}
-
-/* Hide scrollbars but allow scrolling */
-.no-scrollbar {
-  -ms-overflow-style: none !important;
-  scrollbar-width: none !important;
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-}
-
-/* Prevent any scrollbars on category containers but allow badge overflow */
-nav.fixed-footer {
-  /* Allow badges to extend upward beyond the nav container */
-  overflow-x: auto !important;
-  overflow-y: visible !important;
-  overflow: visible !important;
-  /* Add top padding to accommodate badges that extend upward (badge is at top: -4px) */
-  padding: 12px 0 0 0 !important;
-  box-sizing: content-box !important;
-  /* Smooth scrolling on mobile */
-  -webkit-overflow-scrolling: touch !important;
-  scroll-behavior: smooth !important;
-  /* Ensure badges can extend beyond container */
-  clip: none !important;
-  clip-path: none !important;
-  /* Ensure container doesn't clip children */
-  contain: none !important;
-}
-
-nav.fixed-footer > div {
-  /* Horizontal scrolling for categories, vertical overflow for badges */
-  overflow-x: auto !important;
-  overflow-y: visible !important;
-  overflow: visible !important;
-  /* Allow vertical overflow */
-  padding: 0 !important;
-  /* Allow badges to overflow */
-  clip: none !important;
-  clip-path: none !important;
-  contain: none !important;
-  /* Ensure this doesn't clip children */
-  height: 100% !important;
-  /* Ensure badges can extend upward beyond this container */
-  min-height: 100% !important;
-}
-
-nav.fixed-footer > div > div {
-  /* Horizontal scrolling container - but allow vertical overflow for badges */
-  overflow-x: auto !important;
-  overflow-y: visible !important;
-  overflow: visible !important;
-  /* Allow vertical overflow for badges */
-  padding: 0 !important;
-  /* Allow badges to overflow vertically */
-  clip: none !important;
-  clip-path: none !important;
-  contain: none !important;
-  /* Ensure this doesn't clip children */
-  height: 100% !important;
-  /* Ensure badges can extend upward beyond this container */
-  min-height: 100% !important;
-}
-
-/* Override any inline overflow classes on nested divs - CRITICAL for badge visibility */
-nav.fixed-footer > div > div.overflow-x-auto,
-nav.fixed-footer > div > div.no-scrollbar,
-nav.fixed-footer > div > div.h-full {
-  overflow-x: auto !important;
-  overflow-y: visible !important;
-  overflow: visible !important;
-  /* Force vertical overflow to be visible */
-  clip: none !important;
-  clip-path: none !important;
-  contain: none !important;
 }
 
 /* Category list containers - allow badges to overflow */
@@ -368,33 +325,22 @@ nav.fixed-footer > div > div.h-full {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
-  /* Add padding: top for badges extending upward (badge at top: -4px, so need at least 12px),
-     sides for badges at edges (badge extends 4px beyond right edge, so need at least 16px padding) */
-  /* Use responsive padding that adapts to screen size */
   padding: 16px 32px 8px 32px !important;
-  /* On smaller screens, reduce horizontal padding but keep enough for badges */
   min-height: 100% !important;
-  /* Horizontal scrolling enabled, vertical overflow allowed for badges */
   overflow-x: auto !important;
   overflow-y: visible !important;
   overflow: visible !important;
   position: relative !important;
-  /* Ensure badges at edges are visible */
   margin: 0 !important;
-  /* Smooth scrolling on mobile */
   -webkit-overflow-scrolling: touch !important;
   scroll-behavior: smooth !important;
-  /* Prevent clipping of badges - CRITICAL */
   clip: none !important;
   clip-path: none !important;
   contain: none !important;
-  /* Ensure container allows overflow in all directions */
   box-sizing: border-box !important;
-  /* Create stacking context for badges */
   isolation: isolate !important;
 }
 
-/* Responsive padding for smaller screens */
 @media (max-width: 640px) {
   #shoppingCategoriesList,
   #tasksCategoriesList,
@@ -404,7 +350,7 @@ nav.fixed-footer > div > div.h-full {
   }
 }
 
-/* Category color divs (for task/reminder categories without images) */
+/* Category color divs (for non-image categories) */
 .cat > div[class*="w-14"],
 .cat > div[class*="h-14"] {
   width: 56px !important;
@@ -419,11 +365,65 @@ nav.fixed-footer > div > div.h-full {
   flex-shrink: 0 !important;
 }
 
+/* Selected category - Enhanced emphasis */
+.cat.selected {
+  transform: scale(1.12) !important;
+  position: relative;
+  z-index: 10 !important;
+}
+
+.cat.selected::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 3px solid var(--md-sys-color-primary);
+  background: var(--md-sys-color-primary-container);
+  opacity: 0.3;
+  z-index: -1;
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+}
+
 .cat.selected img {
-  transform: scale(1.08);
-  box-shadow: 0 0 0 2px var(--md-sys-color-primary);
+  transform: scale(1.1) !important;
+  box-shadow: 0 0 0 3px var(--md-sys-color-primary),
+              0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid var(--md-sys-color-primary) !important;
   transition: transform var(--md-motion-duration-short4) var(--md-motion-easing-emphasized),
-              box-shadow var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+              box-shadow var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              border var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+}
+
+.cat.selected > div[class*="w-14"],
+.cat.selected > div[class*="h-14"] {
+  transform: scale(1.1) !important;
+  box-shadow: 0 0 0 3px var(--md-sys-color-primary),
+              0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 2px solid var(--md-sys-color-primary) !important;
+  transition: transform var(--md-motion-duration-short4) var(--md-motion-easing-emphasized),
+              box-shadow var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              border var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+}
+
+.cat.selected span {
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  color: var(--md-sys-color-primary) !important;
+  transform: scale(1.1);
+  transition: font-weight var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              color var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
 }
 
 .cat {
@@ -431,14 +431,19 @@ nav.fixed-footer > div > div.h-full {
   transition: transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
 }
 
-.cat:active {
+.cat:active:not(.selected) {
   transform: scale(0.95);
 }
 
-/* Badge - Material Design 3 Badge - White text on black background */
+.cat:active.selected {
+  transform: scale(1.08) !important;
+}
+
+/* Badge - Material Design 3 Badge */
 .badge {
   position: absolute !important; 
-  top: -4px !important; 
+  /* Keep badge fully inside the footer height to avoid clipping */
+  top: 0 !important; 
   right: -4px !important;
   min-width: 20px !important; 
   height: 20px !important; 
@@ -455,15 +460,11 @@ nav.fixed-footer > div > div.h-full {
   letter-spacing: 0.5px !important;
   z-index: 200 !important;
   pointer-events: none !important;
-  /* Ensure badge is not clipped - allow it to overflow container */
   overflow: visible !important;
-  /* Ensure badge doesn't get cut on edges */
   white-space: nowrap !important;
   text-overflow: clip !important;
-  /* Ensure badge can extend beyond parent boundaries */
   clip: none !important;
   clip-path: none !important;
-  /* Force badge to be visible even if parent clips */
   transform: translateZ(0) !important;
 }
 
@@ -476,7 +477,7 @@ nav.fixed-footer > div > div.h-full {
   color: var(--text) !important;
 }
 
-/* Modals - Material Design 3 Dialog */
+/* Modals */
 .modal { 
   display: none; 
 }
@@ -486,7 +487,6 @@ nav.fixed-footer > div > div.h-full {
   animation: fadeIn var(--md-motion-duration-medium2) var(--md-motion-easing-decelerated);
 }
 
-/* Force auth modal to always show when it has the show class */
 #authModal.show {
   display: block !important;
   visibility: visible !important;
@@ -517,21 +517,23 @@ nav.fixed-footer > div > div.h-full {
 }
 
 /* Cards/Rows - Material Design 3 Cards */
+/* M3 Cards: No border, use elevation only, 12px border radius, 16px padding */
 .row { 
   will-change: transform; 
   touch-action: pan-y; 
   background: var(--md-sys-color-surface); 
-  border: 1px solid var(--md-sys-color-outline-variant); 
-  border-radius: var(--md-shape-corner-medium);
+  border: none !important; 
+  border-radius: 12px !important;
+  padding: 16px !important;
   color: var(--text);
   transition: background var(--md-motion-duration-short4) var(--md-motion-easing-standard),
-              border var(--md-motion-duration-short4) var(--md-motion-easing-standard),
               color var(--md-motion-duration-short4) var(--md-motion-easing-standard),
               box-shadow var(--md-motion-duration-short4) var(--md-motion-easing-standard),
               transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
   box-shadow: var(--md-elevation-1);
   position: relative;
   overflow: hidden;
+  margin: 0;
 }
 
 .row::before {
@@ -557,12 +559,12 @@ nav.fixed-footer > div > div.h-full {
 
 .row:hover {
   box-shadow: var(--md-elevation-2);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .row.urgent { 
-  border-left: 5px solid #dc2626 !important;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3) !important;
+  border-left: 4px solid #dc2626 !important;
+  box-shadow: var(--md-elevation-1), 0 0 0 1px rgba(220, 38, 38, 0.2) !important;
   background: rgba(220, 38, 38, 0.05) !important;
 }
 
@@ -571,7 +573,8 @@ nav.fixed-footer > div > div.h-full {
 }
 
 .row.urgent:hover {
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4) !important;
+  box-shadow: var(--md-elevation-2), 0 0 0 1px rgba(220, 38, 38, 0.3) !important;
+  transform: translateY(-2px);
 }
 
 .purchased .title, .purchased .desc { 
@@ -657,53 +660,155 @@ button.border:hover:not(.bg-black):not(.nav-tab) {
 }
 
 /* Text Button */
-button:not(.border):not(.bg-black):not(.nav-tab):not(.cat) {
+/* Text buttons (exclude special buttons like status-btn) */
+button:not(.border):not(.bg-black):not(.nav-tab):not(.cat):not(.status-btn) {
   background: transparent !important;
   color: var(--md-sys-color-primary) !important;
 }
 
-button:not(.border):not(.bg-black):not(.nav-tab):not(.cat):hover {
+button:not(.border):not(.bg-black):not(.nav-tab):not(.cat):not(.status-btn):hover {
   background: var(--md-sys-color-primary-container) !important;
-  opacity: 0.08;
 }
 
-/* Top Navigation Tabs - SynQ Style */
+/* Shopping status button (לקנות / נקנה) */
+.status-btn {
+  min-width: 80px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 24px 16px;
+  border: none;
+}
+
+.status-btn:hover {
+  filter: brightness(1.05);
+}
+
+.status-btn:active {
+  transform: scale(0.97);
+}
+
+/* Floating Action Button (FAB) - Material Design 3 */
+.fab {
+  position: fixed;
+  bottom: calc(var(--footer-h) + 20px);
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  border: none;
+  box-shadow: var(--md-elevation-3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: all var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+  font-size: 24px;
+  font-weight: 500;
+  padding: 0;
+  overflow: hidden;
+}
+
+.fab:hover {
+  box-shadow: var(--md-elevation-4);
+  transform: translateY(-2px);
+}
+
+.fab:active {
+  box-shadow: var(--md-elevation-2);
+  transform: translateY(0) scale(0.96);
+}
+
+.fab.hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.fab-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .fab {
+    bottom: calc(var(--footer-h) + 16px);
+    right: 16px;
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@supports (padding: max(0px)) {
+  .fab {
+    right: max(20px, env(safe-area-inset-right, 20px));
+    bottom: max(calc(var(--footer-h) + 20px), calc(var(--footer-h) + env(safe-area-inset-bottom, 20px)));
+  }
+}
+
+/* Navigation Tabs Container */
+.nav-tabs-container {
+  display: flex;
+  position: relative;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+}
+
 .nav-tab {
   background: transparent !important;
   border: none !important;
-  border-bottom: 2px solid transparent !important;
   border-radius: 0 !important;
   box-shadow: none !important;
   text-transform: none;
   font-weight: 400;
   transition: all 0.2s ease;
-  padding: 8px 12px 10px 12px !important;
+  padding: 10px 12px 12px 12px !important;
   position: relative;
   cursor: pointer;
+  border-right: 1px solid var(--border) !important;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -1px;
+}
+
+.nav-tab:last-child {
+  border-right: none !important;
 }
 
 .nav-tab.active {
-  background: transparent !important;
+  background: var(--card) !important;
   color: #2196F3 !important;
   border-bottom: 2px solid #2196F3 !important;
-  box-shadow: none !important;
+  border-top: 1px solid transparent !important;
   font-weight: 500;
+  z-index: 1;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05) !important;
 }
 
 .nav-tab:not(.active) {
   color: #666666 !important;
+  background: var(--bg) !important;
 }
 
 body.dark-mode .nav-tab:not(.active) {
   color: #B0B0B0 !important;
+  background: var(--bg) !important;
 }
 
 .nav-tab:hover:not(.active) {
-  background: rgba(0, 0, 0, 0.05) !important;
+  background: var(--hover-bg) !important;
 }
 
 body.dark-mode .nav-tab:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: var(--hover-bg) !important;
 }
 
 .nav-tab svg,
@@ -716,6 +821,11 @@ body.dark-mode .nav-tab:hover:not(.active) {
 .nav-tab.active svg {
   color: #2196F3 !important;
   stroke: #2196F3 !important;
+}
+
+body.dark-mode .nav-tab.active svg {
+  color: #64B5F6 !important;
+  stroke: #64B5F6 !important;
 }
 
 /* Inputs - Material Design 3 Filled Text Field */
@@ -748,22 +858,13 @@ textarea::placeholder {
   opacity: 0.6;
 }
 
-/* Cards and Containers */
-.bg-white,
-.bg-gray-50,
-.bg-gray-100 {
-  background: var(--md-sys-color-surface) !important;
-  color: var(--text) !important;
-  border-radius: var(--md-shape-corner-medium);
-  box-shadow: var(--md-elevation-1);
-}
-
-/* Summary Cards */
+/* Summary Cards - Material Design 3 */
 .summary-card {
   background: var(--md-sys-color-surface) !important;
   color: var(--text) !important;
-  border: 1px solid var(--md-sys-color-outline-variant) !important;
-  border-radius: var(--md-shape-corner-large);
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
   box-shadow: var(--md-elevation-1);
   transition: box-shadow var(--md-motion-duration-short4) var(--md-motion-easing-standard),
               transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
@@ -772,6 +873,82 @@ textarea::placeholder {
 .summary-card:hover {
   box-shadow: var(--md-elevation-2);
   transform: translateY(-2px);
+}
+
+/* All card containers - consistent spacing */
+.card-container,
+.task-card,
+.note-card,
+.reminder-card {
+  background: var(--md-sys-color-surface) !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  box-shadow: var(--md-elevation-1);
+  color: var(--text);
+  transition: box-shadow var(--md-motion-duration-short4) var(--md-motion-easing-standard),
+              transform var(--md-motion-duration-short4) var(--md-motion-easing-standard);
+  margin: 0;
+}
+
+.card-container:hover,
+.task-card:hover,
+.note-card:hover,
+.reminder-card:hover {
+  box-shadow: var(--md-elevation-2);
+  transform: translateY(-2px);
+}
+
+/* Consistent gap between cards - M3 spacing (12px) */
+#mainView > div,
+#tasksList,
+#tasksListView > div,
+#notesContainer,
+#remindersContainer {
+  gap: 12px !important;
+}
+
+/* Ensure card containers have proper spacing */
+#mainView > div > div,
+#tasksList > div,
+#notesContainer > div,
+#remindersContainer > div {
+  margin-bottom: 0;
+}
+
+/* Tasks timeline: keep content within viewport height and scroll inside the section if needed */
+#tasksGanttView {
+  max-height: calc(100vh - var(--footer-h) - 110px);
+  overflow-y: auto;
+}
+
+/* Responsive padding for larger screens - M3 guidelines */
+@media (min-width: 768px) {
+  #mainView,
+  #tasksView,
+  #notesView,
+  #remindersView {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+}
+
+/* Ensure all main views have consistent top padding */
+#mainView,
+#tasksView,
+#notesView,
+#remindersView {
+  padding-top: 16px !important;
+}
+
+/* Cards and Containers */
+.bg-white,
+.bg-gray-50,
+.bg-gray-100 {
+  background: var(--md-sys-color-surface) !important;
+  color: var(--text) !important;
+  border-radius: var(--md-shape-corner-medium);
+  box-shadow: var(--md-elevation-1);
 }
 
 /* Charts */
@@ -793,6 +970,8 @@ textarea::placeholder {
   box-shadow: var(--md-elevation-2);
   border: 1px solid var(--md-sys-color-outline-variant);
   direction: ltr;
+  width: 100%;
+  max-width: 100%;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
@@ -988,11 +1167,6 @@ textarea::placeholder {
   z-index: 10;
 }
 
-/* Enhanced task bar content styling */
-.gantt-task {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
 .gantt-task .gantt-task-name {
   font-weight: 600;
   font-size: 12px;
@@ -1065,8 +1239,7 @@ button[style*="background:#ef4444"]:hover {
   box-shadow: var(--md-elevation-2);
 }
 
-/* Note Color Option Buttons - Always Visible */
-/* Color Option Buttons - Always Visible (for all category editors) */
+/* Color Option Buttons */
 .color-option,
 .note-color-option {
   opacity: 1 !important;
@@ -1078,10 +1251,8 @@ button[style*="background:#ef4444"]:hover {
   transition: transform 0.2s, box-shadow 0.2s !important;
   position: relative !important;
   overflow: visible !important;
-  /* Preserve background color from inline styles */
   background-color: inherit !important;
   background-image: none !important;
-  /* Reset any global button styles that might interfere */
   text-transform: none !important;
   letter-spacing: normal !important;
   font-size: 0 !important;
@@ -1093,7 +1264,6 @@ button[style*="background:#ef4444"]:hover {
 .note-color-option:hover {
   transform: scale(1.1) !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
-  /* Keep background color on hover */
   background-color: inherit !important;
 }
 
@@ -1103,14 +1273,13 @@ button[style*="background:#ef4444"]:hover {
   background-color: inherit !important;
 }
 
-/* Remove ripple effect from color buttons */
 .color-option::after,
 .note-color-option::after {
   display: none !important;
   content: none !important;
 }
 
-/* Universal Dark Mode Overrides */
+/* Dark Mode Overrides */
 html.dark-mode,
 body.dark-mode {
   background-color: var(--bg) !important;
@@ -1160,7 +1329,7 @@ p, div, span, h1, h2, h3, h4, h5, h6, label {
   color: var(--text) !important;
 }
 
-/* Toast - Always white text on black background */
+/* Toast */
 #toast {
   background: #000000 !important;
   color: #ffffff !important;
@@ -1171,7 +1340,7 @@ body.dark-mode #toast {
   color: #ffffff !important;
 }
 
-/* Loading Animation - Material Design 3 */
+/* Loading Spinner */
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -1186,7 +1355,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Focus Visible - Material Design 3 */
+/* Focus Visible */
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
@@ -1194,3 +1363,5 @@ select:focus-visible {
   outline: 2px solid var(--md-sys-color-primary);
   outline-offset: 2px;
 }
+
+

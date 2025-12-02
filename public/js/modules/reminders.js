@@ -86,9 +86,15 @@ export function initReminders({
   loadReminders();
   handleViewChange(getCurrentViewFn());
 
+  // Make openReminderEditor globally accessible
+  if (typeof window !== 'undefined') {
+    window.openReminderEditor = openReminderEditor;
+  }
+  
   return {
     handleViewChange,
-    getReminders: () => [...REMINDERS]
+    getReminders: () => [...REMINDERS],
+    openReminderEditor: openReminderEditor
   };
 }
 
@@ -275,7 +281,7 @@ function renderReminders() {
 
 function createReminderCard(reminder) {
   const card = document.createElement('div');
-  card.className = 'row p-3 flex items-center justify-between';
+  card.className = 'row flex items-center justify-between';
 
   const info = document.createElement('div');
   info.className = 'flex-1';

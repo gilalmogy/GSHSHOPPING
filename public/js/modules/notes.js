@@ -21,7 +21,7 @@ let notesViewMode = 'grid';
 
 const dom = {};
 const selectors = {
-  notesSearch: '#notesSearch',
+  notesSearch: '#search',
   notesContainer: '#notesContainer',
   notesFilterBtn: '#notesFilterBtn',
   notesFilters: '#notesFilters',
@@ -94,9 +94,15 @@ export function initNotes({
     dom.notesViewToggle.textContent = notesViewMode === 'grid' ? 'תצוגת רשימה' : 'תצוגת רשת';
   }
 
+  // Make openNoteEditor globally accessible
+  if (typeof window !== 'undefined') {
+    window.openNoteEditor = openNoteEditor;
+  }
+  
   return {
     handleViewChange: handleViewChange,
-    getNotes: () => [...NOTES]
+    getNotes: () => [...NOTES],
+    openNoteEditor: openNoteEditor
   };
 }
 
@@ -297,7 +303,7 @@ function renderNotes() {
 
   filtered.forEach(note => {
     const card = document.createElement('div');
-    card.className = 'row p-3 cursor-pointer';
+    card.className = 'row cursor-pointer';
     if (notesViewMode === 'list') {
       card.style.width = '100%';
       card.style.maxWidth = '100%';

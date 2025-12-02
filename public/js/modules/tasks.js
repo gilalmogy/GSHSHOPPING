@@ -5,6 +5,7 @@ import { uploadFileAndGetURL } from '../utils/upload.js';
 const TASK_CATEGORY_KEY = 'gsh-task-category';
 const GANTT_VIEW_START_KEY = 'gsh-gantt-view-start';
 const GANTT_VIEW_END_KEY = 'gsh-gantt-view-end';
+const GANTT_DIRECTION_KEY = 'gsh-gantt-direction'; // 'ltr' or 'rtl'
 
 let householdRefRef;
 let householdId; // Store household ID for storage paths
@@ -22,6 +23,7 @@ let HOUSEHOLD_USERS = {}; // {userId: {id, firstName, lastName, nickname, photoU
 let ganttViewStart = null;
 let ganttViewEnd = null;
 let ganttExpanded = true;
+let ganttDirection = 'ltr'; // 'ltr' or 'rtl'
 
 let _tasksUnsub = null;
 
@@ -83,8 +85,7 @@ const selectors = {
   ganttViewYear: '#ganttViewYear',
   ganttFitAll: '#ganttFitAll',
   ganttDateRange: '#ganttDateRange',
-  ganttFitAll: '#ganttFitAll',
-  ganttDateRange: '#ganttDateRange'
+  ganttDirectionToggle: '#ganttDirectionToggle'
 };
 
 function normalizeTaskDate(value, options = {}) {
@@ -189,6 +190,7 @@ export function initTasks({
     window.renderTasks = renderTasks;
     window.renderTaskCategories = renderTaskCategories;
     window.switchTasksTab = switchTasksTab;
+    window.openTaskEditor = openTaskEditor;
     
     // Create wrapper functions that sync with module variables
     window.loadGanttViewState = function() {
@@ -396,43 +398,34 @@ let currentTasksTab = 'list';
 function wireEvents() {
   dom.addTaskBtn?.addEventListener('click', () => openTaskEditor(null));
   
-  // Tab switching
-  dom.tasksTabList?.addEventListener('click', () => switchTasksTab('list'));
-  dom.tasksTabGantt?.addEventListener('click', () => switchTasksTab('gantt'));
-  
-  // Add hover handlers for tab buttons
-  if (dom.tasksTabList) {
-    dom.tasksTabList.addEventListener('mouseenter', function() {
-      if (currentTasksTab !== 'list') {
-        this.style.background = 'var(--hover-bg)';
-      }
-    });
-    dom.tasksTabList.addEventListener('mouseleave', function() {
+  // Single toggle button for list / timeline
+  if (dom.tasksTabList && dom.tasksTabGantt) {
+    const toggleBtn = dom.tasksTabList; // Use list button as the single toggle
+    // Hide the separate gantt button from UI but keep reference
+    dom.tasksTabGantt.style.display = 'none';
+    
+    const applyToggleState = () => {
       if (currentTasksTab === 'list') {
-        this.style.background = 'var(--accent)';
-        this.style.color = 'var(--bg)';
+        toggleBtn.textContent = 'תצוגת רשימה';
+        toggleBtn.style.background = 'var(--accent)';
+        toggleBtn.style.color = 'var(--bg)';
+        toggleBtn.style.borderColor = 'var(--accent)';
       } else {
-        this.style.background = 'transparent';
-        this.style.color = 'var(--text)';
+        toggleBtn.textContent = 'ציר זמן';
+        toggleBtn.style.background = 'transparent';
+        toggleBtn.style.color = 'var(--text)';
+        toggleBtn.style.borderColor = 'var(--border)';
       }
+    };
+    
+    toggleBtn.addEventListener('click', () => {
+      const nextTab = currentTasksTab === 'list' ? 'gantt' : 'list';
+      switchTasksTab(nextTab);
+      applyToggleState();
     });
-  }
-  
-  if (dom.tasksTabGantt) {
-    dom.tasksTabGantt.addEventListener('mouseenter', function() {
-      if (currentTasksTab !== 'gantt') {
-        this.style.background = 'var(--hover-bg)';
-      }
-    });
-    dom.tasksTabGantt.addEventListener('mouseleave', function() {
-      if (currentTasksTab === 'gantt') {
-        this.style.background = 'var(--accent)';
-        this.style.color = 'var(--bg)';
-      } else {
-        this.style.background = 'transparent';
-        this.style.color = 'var(--text)';
-      }
-    });
+    
+    // Initialize state
+    applyToggleState();
   }
 
   document
@@ -501,6 +494,7 @@ function wireEvents() {
   dom.ganttViewMonth?.addEventListener('click', ganttViewMonthPreset);
   dom.ganttViewYear?.addEventListener('click', ganttViewYearPreset);
   dom.ganttFitAll?.addEventListener('click', ganttFitAllTasks);
+  dom.ganttDirectionToggle?.addEventListener('click', toggleGanttDirection);
   
   // Keyboard shortcuts for gantt navigation
   setupGanttKeyboardShortcuts();
@@ -694,33 +688,9 @@ function switchTasksTab(tab) {
   if (tab === 'list') {
     dom.tasksListView?.classList.remove('hidden');
     dom.tasksGanttView?.classList.add('hidden');
-    // Style list button as active
-    if (dom.tasksTabList) {
-      dom.tasksTabList.style.background = 'var(--accent)';
-      dom.tasksTabList.style.color = 'var(--bg)';
-      dom.tasksTabList.style.borderColor = 'var(--accent)';
-    }
-    // Style gantt button as inactive
-    if (dom.tasksTabGantt) {
-      dom.tasksTabGantt.style.background = 'transparent';
-      dom.tasksTabGantt.style.color = 'var(--text)';
-      dom.tasksTabGantt.style.borderColor = 'var(--border)';
-    }
   } else {
     dom.tasksListView?.classList.add('hidden');
     dom.tasksGanttView?.classList.remove('hidden');
-    // Style gantt button as active
-    if (dom.tasksTabGantt) {
-      dom.tasksTabGantt.style.background = 'var(--accent)';
-      dom.tasksTabGantt.style.color = 'var(--bg)';
-      dom.tasksTabGantt.style.borderColor = 'var(--accent)';
-    }
-    // Style list button as inactive
-    if (dom.tasksTabList) {
-      dom.tasksTabList.style.background = 'transparent';
-      dom.tasksTabList.style.color = 'var(--text)';
-      dom.tasksTabList.style.borderColor = 'var(--border)';
-    }
     
     // Ensure DOM is cached before rendering
     if (!dom.ganttTimeline) {
@@ -738,12 +708,24 @@ function switchTasksTab(tab) {
       
         // Double-check that we're still on the gantt tab and view is visible
         if (currentTasksTab === 'gantt' && dom.tasksGanttView && !dom.tasksGanttView.classList.contains('hidden')) {
-      // Always initialize gantt view dates if not set
-      if (!ganttViewStart || !ganttViewEnd) {
-        ganttJumpToToday();
-      } else {
-        // Ensure gantt is rendered even if dates are set
+      // Always initialize gantt view dates if not set or invalid
+      if (!ganttViewStart || !ganttViewEnd || isNaN(ganttViewStart.getTime()) || isNaN(ganttViewEnd.getTime())) {
+        // Default to current week on first load
+        setCurrentWeekRange();
+      }
+      // Render gantt
         renderGantt();
+      // Auto-scroll to current week after initial render (only on first load)
+      // Check if this is first load by checking if dates were just initialized
+      const wasInitialized = !ganttViewStart || !ganttViewEnd;
+      if (wasInitialized) {
+        setTimeout(() => {
+          if (currentTasksTab === 'gantt') {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+            scrollToDate(now);
+          }
+        }, 500);
       }
       // Ensure scroll extension is set up
       setupGanttScrollExtension();
@@ -782,11 +764,8 @@ function renderTasks() {
     const overdue = isTaskOverdue(task);
     const isFinished = ['finished','canceled'].includes(task.status);
     const card = document.createElement('div');
-    card.className = `row p-3 cursor-pointer task-row ${overdue ? 'task-overdue' : ''} ${isFinished ? 'opacity-70' : ''}`;
-    // Ensure spacing between rows - add margin-top as fallback
-    if (index > 0) {
-      card.style.marginTop = '12px';
-    }
+    card.className = `row cursor-pointer task-row ${overdue ? 'task-overdue' : ''} ${isFinished ? 'opacity-70' : ''}`;
+    // Spacing is handled by parent gap
     card.dataset.id = task.id;
 
     const taskName = task.name || 'ללא שם';
@@ -1173,13 +1152,13 @@ function renderGantt() {
     console.warn('Gantt timeline element not found');
     return;
   }
-  // Force LTR behavior regardless of global RTL layout
-  timeline.setAttribute('dir', 'ltr');
-  timeline.style.direction = 'ltr';
-  dom.ganttContainer?.setAttribute('dir', 'ltr');
-  dom.ganttContainer?.style.setProperty('direction', 'ltr', 'important');
-  dom.ganttFixedContainer?.setAttribute('dir', 'ltr');
-  dom.ganttFixedContainer?.style.setProperty('direction', 'ltr', 'important');
+  // Use saved direction preference
+  timeline.setAttribute('dir', ganttDirection);
+  timeline.style.direction = ganttDirection;
+  dom.ganttContainer?.setAttribute('dir', ganttDirection);
+  dom.ganttContainer?.style.setProperty('direction', ganttDirection, 'important');
+  dom.ganttFixedContainer?.setAttribute('dir', ganttDirection);
+  dom.ganttFixedContainer?.style.setProperty('direction', ganttDirection, 'important');
 
   // Only render content if we're on the gantt tab and view is visible
   if (currentTasksTab !== 'gantt') {
@@ -1266,8 +1245,8 @@ function renderGantt() {
   // Create a multi-row header with Year, Month, and Day rows
   const header = document.createElement('div');
   header.className = 'gantt-header';
-  header.setAttribute('dir', 'ltr');
-  header.style.direction = 'ltr';
+  header.setAttribute('dir', ganttDirection);
+  header.style.direction = ganttDirection;
   header.style.display = 'flex';
   header.style.flexDirection = 'column';
   
@@ -1282,7 +1261,7 @@ function renderGantt() {
   yearRow.className = 'gantt-header-row gantt-header-year-row';
   yearRow.style.display = 'flex';
   yearRow.style.flexDirection = 'row';
-  yearRow.style.direction = 'ltr';
+  yearRow.style.direction = ganttDirection;
   yearRow.style.width = `${calculatedWidth}px`;
   yearRow.style.minWidth = `${calculatedWidth}px`;
   
@@ -1291,7 +1270,7 @@ function renderGantt() {
   monthRow.className = 'gantt-header-row gantt-header-month-row';
   monthRow.style.display = 'flex';
   monthRow.style.flexDirection = 'row';
-  monthRow.style.direction = 'ltr';
+  monthRow.style.direction = ganttDirection;
   monthRow.style.width = `${calculatedWidth}px`;
   monthRow.style.minWidth = `${calculatedWidth}px`;
   
@@ -1300,7 +1279,7 @@ function renderGantt() {
   dayRow.className = 'gantt-header-row gantt-header-day-row';
   dayRow.style.display = 'flex';
   dayRow.style.flexDirection = 'row';
-  dayRow.style.direction = 'ltr';
+  dayRow.style.direction = ganttDirection;
   dayRow.style.width = `${calculatedWidth}px`;
   dayRow.style.minWidth = `${calculatedWidth}px`;
   
@@ -1350,7 +1329,7 @@ function renderGantt() {
     dayCell.style.width = `${dayCellWidth}px`;
     dayCell.style.minWidth = `${dayCellWidth}px`;
     dayCell.style.flexShrink = '0';
-    dayCell.style.direction = 'ltr';
+    dayCell.style.direction = ganttDirection;
     dayCell.style.position = 'relative';
     dayCell.innerHTML = `
       <div class="gantt-header-day-name">${dayNames[day.getDay()]}</div>
@@ -1402,7 +1381,7 @@ function renderGantt() {
   const rowHeight = 44; // Increased for two-line task bars
   tasksLayer.style.height = `${allTasks.length * rowHeight}px`;
   tasksLayer.style.width = `${calculatedWidth}px`;
-  tasksLayer.setAttribute('dir', 'ltr');
+  tasksLayer.setAttribute('dir', ganttDirection);
 
   const totalDays = days.length;
   const dayCellWidthPx = calculatedWidth / totalDays;
@@ -1644,19 +1623,16 @@ function getTaskColor(task) {
 }
 
 function ganttJumpToToday() {
-  const msPerDay = 86400000;
+  // Use current week by default for better context
+  setCurrentWeekRange({ save: true });
+  
+  renderGantt();
+  // Scroll to today after render
+  setTimeout(() => {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  
-  ganttViewStart = new Date(now.getTime() - (7 * msPerDay));
-  ganttViewStart.setHours(0, 0, 0, 0);
-  
-  ganttViewEnd = new Date(now.getTime() + (30 * msPerDay));
-  ganttViewEnd.setHours(23, 59, 59, 999);
-  
-  saveGanttViewState();
-  renderGantt();
-  scrollToToday();
+    scrollToDate(now);
+  }, 350);
 }
 
 function ganttJumpToDatePrompt() {
@@ -1689,15 +1665,19 @@ function ganttNavigate(direction) {
   const delta = direction === 'prev' ? -7 : 7;
   const deltaMs = delta * msPerDay;
   
-  // Use setTime with milliseconds to reliably handle year/month boundaries
+  // Calculate current view duration to maintain zoom level
+  const currentRange = ganttViewEnd.getTime() - ganttViewStart.getTime();
+  
+  // Shift view by delta while maintaining range
   ganttViewStart = new Date(ganttViewStart.getTime() + deltaMs);
   ganttViewStart.setHours(0, 0, 0, 0);
   
-  ganttViewEnd = new Date(ganttViewEnd.getTime() + deltaMs);
+  ganttViewEnd = new Date(ganttViewStart.getTime() + currentRange);
   ganttViewEnd.setHours(23, 59, 59, 999);
   
   saveGanttViewState();
   renderGantt();
+  // Don't scroll - maintain user's scroll position relative to content
 }
 
 function ganttJumpToTask(direction) {
@@ -1784,19 +1764,46 @@ function loadGanttViewState() {
     const savedEnd = localStorage.getItem(GANTT_VIEW_END_KEY);
     if (savedStart) ganttViewStart = new Date(parseInt(savedStart, 10));
     if (savedEnd) ganttViewEnd = new Date(parseInt(savedEnd, 10));
+    
+    // Load direction preference
+    const savedDirection = localStorage.getItem(GANTT_DIRECTION_KEY);
+    if (savedDirection === 'rtl' || savedDirection === 'ltr') {
+      ganttDirection = savedDirection;
+    } else {
+      ganttDirection = 'ltr'; // Default to LTR
+    }
   } catch (_) {}
 
   // If there's no saved state, default to the current week so the view is meaningful on first load
-  if (!ganttViewStart || !ganttViewEnd) {
+  if (!ganttViewStart || !ganttViewEnd || isNaN(ganttViewStart.getTime()) || isNaN(ganttViewEnd.getTime())) {
     setCurrentWeekRange();
   }
+  
+  // Update toggle button display
+  updateDirectionToggleButton();
 }
 
 function saveGanttViewState() {
   try {
     if (ganttViewStart) localStorage.setItem(GANTT_VIEW_START_KEY, String(ganttViewStart.getTime()));
     if (ganttViewEnd) localStorage.setItem(GANTT_VIEW_END_KEY, String(ganttViewEnd.getTime()));
+    if (ganttDirection) localStorage.setItem(GANTT_DIRECTION_KEY, ganttDirection);
   } catch (_) {}
+}
+
+function toggleGanttDirection() {
+  ganttDirection = ganttDirection === 'ltr' ? 'rtl' : 'ltr';
+  saveGanttViewState();
+  updateDirectionToggleButton();
+  renderGantt();
+}
+
+function updateDirectionToggleButton() {
+  if (dom.ganttDirectionToggle) {
+    const label = ganttDirection === 'ltr' ? '→ LTR' : '← RTL';
+    dom.ganttDirectionToggle.textContent = `⇄ ${label}`;
+    dom.ganttDirectionToggle.title = ganttDirection === 'ltr' ? 'החלף לימין-לשמאל (RTL)' : 'החלף לשמאל-לימין (LTR)';
+  }
 }
 
 function setCurrentWeekRange(options = {}) {
@@ -1828,23 +1835,28 @@ function ganttViewTodayPreset() {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
   
-  // Show today with context: 3 days before, 7 days after
-  ganttViewStart = new Date(now.getTime() - (3 * msPerDay));
+  // Show today with context: 7 days before, 14 days after (better context)
+  ganttViewStart = new Date(now.getTime() - (7 * msPerDay));
   ganttViewStart.setHours(0, 0, 0, 0);
   
-  ganttViewEnd = new Date(now.getTime() + (7 * msPerDay));
+  ganttViewEnd = new Date(now.getTime() + (14 * msPerDay));
   ganttViewEnd.setHours(23, 59, 59, 999);
   
   saveGanttViewState();
   renderGantt();
-  scrollToToday();
+  // Wait a bit for render, then scroll to today
+  setTimeout(() => {
+    scrollToToday();
+  }, 350);
 }
 
 function ganttViewWeekPreset() {
   const { startOfWeek } = setCurrentWeekRange({ save: true });
   renderGantt();
-  // Scroll to start of week
-  scrollToDate(startOfWeek);
+  // Wait for render, then scroll to start of week (centered)
+  setTimeout(() => {
+    scrollToDate(startOfWeek);
+  }, 350);
 }
 
 function ganttViewMonthPreset() {
@@ -1863,8 +1875,10 @@ function ganttViewMonthPreset() {
   
   saveGanttViewState();
   renderGantt();
-  // Scroll to today (within the month view)
-  scrollToDate(now);
+  // Wait for render, then scroll to today (centered in view)
+  setTimeout(() => {
+    scrollToDate(now);
+  }, 350);
 }
 
 function ganttViewYearPreset() {
@@ -1881,8 +1895,10 @@ function ganttViewYearPreset() {
   
   saveGanttViewState();
   renderGantt();
-  // Scroll to today (within the year view)
-  scrollToDate(now);
+  // Wait for render, then scroll to today (centered in view)
+  setTimeout(() => {
+    scrollToDate(now);
+  }, 350);
 }
 
 function ganttFitAllTasks() {
@@ -1939,20 +1955,23 @@ function ganttNavigateMonth(direction) {
     return;
   }
   
-  // Navigate by one month using millisecond arithmetic
-  const msPerDay = 86400000;
+  // Navigate to the next/previous month while maintaining day of month context
   const center = new Date((ganttViewStart.getTime() + ganttViewEnd.getTime()) / 2);
+  const currentYear = center.getFullYear();
+  const currentMonth = center.getMonth();
   
-  // Calculate average days per month (30.44 days)
-  const avgDaysPerMonth = 30.44;
-  const daysToShift = direction === 'prev' ? -avgDaysPerMonth : avgDaysPerMonth;
-  const msToShift = daysToShift * msPerDay;
+  // Calculate new month
+  let newYear = currentYear;
+  let newMonth = currentMonth + (direction === 'prev' ? -1 : 1);
   
-  const newCenter = new Date(center.getTime() + msToShift);
-  
-  // Get the month boundaries for the new center date
-  const newYear = newCenter.getFullYear();
-  const newMonth = newCenter.getMonth();
+  // Handle year boundaries
+  if (newMonth < 0) {
+    newMonth = 11;
+    newYear--;
+  } else if (newMonth > 11) {
+    newMonth = 0;
+    newYear++;
+  }
   
   // First day of the month
   ganttViewStart = new Date(newYear, newMonth, 1);
@@ -1964,6 +1983,10 @@ function ganttNavigateMonth(direction) {
   
   saveGanttViewState();
   renderGantt();
+  // Scroll to first day of the month
+  setTimeout(() => {
+    scrollToDate(ganttViewStart);
+  }, 350);
 }
 
 function scrollToDate(targetDate, retryCount = 0) {
@@ -1973,35 +1996,53 @@ function scrollToDate(targetDate, retryCount = 0) {
   }
   
   // Prevent infinite recursion
-  if (retryCount > 3) {
+  if (retryCount > 5) {
     console.warn('scrollToDate: Max retries reached');
     return;
   }
   
+  // Wait a bit to ensure DOM is ready
+  const delay = retryCount === 0 ? 300 : 200; // Longer initial delay
+  
   setTimeout(() => {
     const container = dom.ganttContainer;
-    if (!container || !ganttViewStart || !ganttViewEnd) return;
+    if (!container || !ganttViewStart || !ganttViewEnd) {
+      if (retryCount < 3) {
+        setTimeout(() => scrollToDate(targetDate, retryCount + 1), delay);
+      }
+      return;
+    }
     
     const timeline = dom.ganttTimeline;
-    if (!timeline) return;
+    if (!timeline) {
+      if (retryCount < 3) {
+        setTimeout(() => scrollToDate(targetDate, retryCount + 1), delay);
+      }
+      return;
+    }
     
     // Calculate target date's position in the timeline
     const msPerDay = 86400000;
     const normalizedTarget = normalizeTaskDate(targetDate);
-    if (!normalizedTarget) return;
+    if (!normalizedTarget) {
+      if (retryCount < 2) {
+        setTimeout(() => scrollToDate(targetDate, retryCount + 1), delay);
+      }
+      return;
+    }
     
     const targetTime = normalizedTarget.getTime();
     const startTime = normalizeTaskDate(ganttViewStart).getTime();
     const endTime = normalizeTaskDate(ganttViewEnd, { endOfDay: true }).getTime();
     
-    // Check if target date is within current view range (with small buffer)
-    const buffer = 1 * msPerDay; // 1 day buffer
+    // Check if target date is within current view range (with buffer)
+    const buffer = 2 * msPerDay; // 2 day buffer
     
     if (targetTime < (startTime - buffer) || targetTime > (endTime + buffer)) {
       // Date is outside current view, need to adjust view first
       const daysRange = Math.ceil((endTime - startTime) / msPerDay);
       
-      // Center the target date in the view
+      // Center the target date in the view with reasonable padding
       const padding = Math.max(7, Math.floor(daysRange / 2));
       ganttViewStart = new Date(targetTime - (padding * msPerDay));
       ganttViewStart.setHours(0, 0, 0, 0);
@@ -2012,8 +2053,8 @@ function scrollToDate(targetDate, retryCount = 0) {
       saveGanttViewState();
       renderGantt();
       
-      // Wait for render and scroll again
-      setTimeout(() => scrollToDate(targetDate, retryCount + 1), 200);
+      // Wait for render to complete, then scroll
+      setTimeout(() => scrollToDate(targetDate, retryCount + 1), 400);
       return;
     }
     
@@ -2021,22 +2062,55 @@ function scrollToDate(targetDate, retryCount = 0) {
     const daysFromStart = Math.floor((targetTime - startTime) / msPerDay);
     const totalDays = Math.ceil((endTime - startTime) / msPerDay);
     
-    // Get actual timeline width after render
-    const timelineWidth = timeline.offsetWidth || timeline.scrollWidth || container.scrollWidth;
+    if (totalDays <= 0) {
+      if (retryCount < 2) {
+        setTimeout(() => scrollToDate(targetDate, retryCount + 1), delay);
+      }
+      return;
+    }
+    
+    // Get actual timeline width after render - try multiple sources
+    const timelineWidth = timeline.scrollWidth || timeline.offsetWidth || container.scrollWidth || 0;
+    
     if (!timelineWidth || timelineWidth === 0) {
       // Timeline not fully rendered yet, retry
-      if (retryCount < 2) {
-        setTimeout(() => scrollToDate(targetDate, retryCount + 1), 100);
+      if (retryCount < 4) {
+        setTimeout(() => scrollToDate(targetDate, retryCount + 1), delay);
       }
       return;
     }
     
     const dayCellWidth = timelineWidth / totalDays;
+    if (!dayCellWidth || dayCellWidth <= 0) {
+      if (retryCount < 2) {
+        setTimeout(() => scrollToDate(targetDate, retryCount + 1), delay);
+      }
+      return;
+    }
     
     // Calculate target scroll position (center the date in viewport)
-    const targetScrollLeft = (daysFromStart * dayCellWidth) - (container.clientWidth / 2) + (dayCellWidth / 2);
-    container.scrollLeft = Math.max(0, Math.min(targetScrollLeft, container.scrollWidth - container.clientWidth));
-  }, 150);
+    const datePosition = daysFromStart * dayCellWidth;
+    const viewportCenter = container.clientWidth / 2;
+    let targetScrollLeft = datePosition - viewportCenter + (dayCellWidth / 2);
+    
+    // Clamp to valid scroll range (LTR base)
+    const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
+    targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScroll));
+    
+    // If RTL, mirror the scroll position from the right edge
+    const isRTL = ganttDirection === 'rtl';
+    const finalScrollLeft = isRTL ? (maxScroll - targetScrollLeft) : targetScrollLeft;
+    
+    // Smooth scroll to position
+    if (container.scrollTo) {
+      container.scrollTo({
+        left: finalScrollLeft,
+        behavior: 'smooth'
+      });
+    } else {
+      container.scrollLeft = finalScrollLeft;
+    }
+  }, delay);
 }
 
 function scrollToToday() {

@@ -95,7 +95,21 @@ export async function signInWithGoogle() {
     provider.addScope('profile');
     provider.addScope('email');
 
-    // Prefer popup where possible, fall back to redirect if blocked / COOP issues
+    // Detect if we should use redirect instead of popup
+    // Use redirect on mobile devices or when popup is likely blocked
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const prefersRedirect = isMobile || 
+                           (window.location.protocol === 'https:' && window.location.hostname.includes('warpcodes.com'));
+
+    if (prefersRedirect) {
+      // Use redirect flow directly (more reliable with strict browser policies)
+      console.log('Using redirect flow for Google sign-in');
+      await signInWithRedirect(auth, provider);
+      // The result will be handled by getRedirectResult on page load
+      return { user: null, isNewUser: false, needsOnboarding: false };
+    }
+
+    // Try popup first for desktop, fall back to redirect if it fails
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
@@ -132,7 +146,14 @@ export async function signInWithGoogle() {
         return { user, isNewUser: false, needsOnboarding: !profileData.onboardingComplete };
       }
     } catch (popupError) {
-      console.warn('Popup sign-in failed, falling back to redirect:', popupError);
+      // Suppress COOP warnings - they're harmless but noisy
+      const isCOOPError = popupError?.code === 'auth/unauthorized-domain' || 
+                         popupError?.message?.includes('Cross-Origin-Opener-Policy');
+      
+      if (!isCOOPError) {
+        console.warn('Popup sign-in failed, falling back to redirect:', popupError);
+      }
+      
       // Use redirect flow as a fallback (more reliable with strict browser policies)
       await signInWithRedirect(auth, provider);
       // The result will be handled by getRedirectResult on page load

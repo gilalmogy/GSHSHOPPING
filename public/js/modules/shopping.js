@@ -2,13 +2,18 @@ import { loadImageWithCache } from '../utils/imageCache.js';
 import { uploadFileAndGetURL } from '../utils/upload.js';
 import { parseDateStr, iso } from '../utils/dateUtils.js';
 import { toast, showLoading, hideLoading, fmtMoney, validateName, validatePrice, validateQuantity } from '/utils/helpers.js';
+import { createElement, setTextContent } from '../utils/dom.js';
 
 let CATEGORIES = [];
 const CATEGORY_TODO_COUNTS = {};
 const CATEGORY_URGENT_COUNTS = {};
-let ITEMS = {};
+// BEST PRACTICE: Store only items for the currently selected category
+// This prevents mixing items from different categories
+let CURRENT_ITEMS = []; // Simple array, only items for current category
 let selectedCategory = null;
 let _itemsUnsub = null;
+let _listeningForCategory = null; // Track which category the listener is for
+let _loadingCategory = null; // Track which category is currently loading to prevent duplicate calls
 let _todoUnsubs = [];
 let parsedImportItems = [];
 let userTemplates = [];
@@ -229,67 +234,220 @@ function setupEventListeners() {
   });
 }
 
+// REBUILT: Simple category loading
 function primeCategories() {
-  const { collection, orderBy, query, getDocs } = firebaseFns;
-  const catsCol = collection(householdRefRef, 'categories');
-
-  getDocs(query(catsCol, orderBy('order', 'asc')))
-    .then(qs => {
-      CATEGORIES = normalizeCategories(qs);
-      renderCategories();
-      attachCategoryTodoCounters();
-      restoreSelectedCategory();
-      showShoppingBar();
-    })
-    .catch(console.error);
-
+  // Start real-time listener immediately
   onCategoriesSnapshot();
 }
 
-function normalizeCategories(qs) {
-  return qs.docs
-    .map(d => {
-      const data = d.data();
-      return {
-        id: d.id,
-        label: data.label,
-        img: data.img || '',
-        order: data.order ?? 0,
-        pinned: !!data.pinned
-      };
-    })
-    .sort((a, b) => {
-      const pinnedDiff = Number(b.pinned) - Number(a.pinned);
-      if (pinnedDiff !== 0) return pinnedDiff;
-      return (a.order ?? 0) - (b.order ?? 0);
+// MIGRATION FUNCTION: Ensure all items have a category field and fix wrong categories
+async function migrateItemsWithoutCategory() {
+  if (CATEGORIES.length === 0) {
+    return; // No categories yet, can't migrate
+  }
+  
+  const { collection, query, getDocs, doc, updateDoc, serverTimestamp, where } = firebaseFns;
+  const itemsCol = collection(householdRefRef, 'items');
+  
+  try {
+    // Get ALL items (no category filter) to audit all items
+    const allItemsSnapshot = await getDocs(itemsCol);
+    const itemsToFix = [];
+    const itemsWithInvalidCategory = [];
+    
+    // Get valid category IDs
+    const validCategoryIds = CATEGORIES.map(c => c.id);
+    
+    allItemsSnapshot.forEach((itemDoc) => {
+      const data = itemDoc.data();
+      
+      // Check if item is missing category field
+      if (!data.category) {
+        itemsToFix.push({ id: itemDoc.id, data, reason: 'missing category' });
+      }
+      // Check if item has invalid category (category doesn't exist)
+      else if (!validCategoryIds.includes(data.category)) {
+        itemsWithInvalidCategory.push({ id: itemDoc.id, data, invalidCategory: data.category, reason: 'invalid category' });
+      }
     });
+    
+    if (itemsToFix.length === 0 && itemsWithInvalidCategory.length === 0) {
+      console.log('[Migration] All items have valid category fields');
+      return;
+    }
+    
+    console.log('[Migration] Found', itemsToFix.length, 'items without category and', itemsWithInvalidCategory.length, 'items with invalid category');
+    
+    // Assign items without category or with invalid category to the first category
+    const defaultCategoryId = CATEGORIES[0].id;
+    
+    // Fix items without category
+    for (const item of itemsToFix) {
+      try {
+        await updateDoc(doc(householdRefRef, 'items', item.id), {
+          category: defaultCategoryId,
+          updatedAt: serverTimestamp()
+        });
+        console.log('[Migration] Fixed item', item.id, '- assigned to category:', defaultCategoryId, '(was missing category)');
+      } catch (err) {
+        console.error('[Migration] Error fixing item', item.id, ':', err);
+      }
+    }
+    
+    // Fix items with invalid category
+    for (const item of itemsWithInvalidCategory) {
+      try {
+        await updateDoc(doc(householdRefRef, 'items', item.id), {
+          category: defaultCategoryId,
+          updatedAt: serverTimestamp()
+        });
+        console.log('[Migration] Fixed item', item.id, '- changed category from', item.invalidCategory, 'to', defaultCategoryId);
+      } catch (err) {
+        console.error('[Migration] Error fixing item', item.id, ':', err);
+      }
+    }
+    
+    const totalFixed = itemsToFix.length + itemsWithInvalidCategory.length;
+    if (totalFixed > 0) {
+      console.log('[Migration] Migration complete - fixed', totalFixed, 'items');
+      toast(`תוקנו ${totalFixed} פריטים`, 2000);
+    }
+  } catch (error) {
+    console.error('[Migration] Error during migration:', error);
+  }
 }
 
+// COMPREHENSIVE AUDIT: Check ALL items across ALL categories to find wrong assignments
+async function auditAllItemsByCategory() {
+  if (CATEGORIES.length === 0) return;
+  
+  console.log('[Audit] ========== STARTING COMPREHENSIVE ITEM CATEGORY AUDIT ==========');
+  const { collection, getDocs, doc, getDoc } = firebaseFns;
+  const itemsCol = collection(householdRefRef, 'items');
+  
+  try {
+    // Get ALL items from database (no filter)
+    const allItemsSnapshot = await getDocs(itemsCol);
+    const itemsByCategory = {};
+    const validCategoryIds = CATEGORIES.map(c => String(c.id));
+    
+    console.log('[Audit] Total items in database:', allItemsSnapshot.size);
+    console.log('[Audit] Valid category IDs:', validCategoryIds);
+    
+    // Group all items by their category field value
+    allItemsSnapshot.forEach((itemDoc) => {
+      const data = itemDoc.data();
+      const itemCategory = String(data.category || '').trim();
+      const itemName = data.name || 'Unknown';
+      
+      if (!itemsByCategory[itemCategory]) {
+        itemsByCategory[itemCategory] = [];
+      }
+      
+      itemsByCategory[itemCategory].push({
+        id: itemDoc.id,
+        name: itemName,
+        category: itemCategory || '(missing)'
+      });
+    });
+    
+    console.log('[Audit] Items grouped by category field:', itemsByCategory);
+    
+    // Check each category and see what items it has
+    for (const cat of CATEGORIES) {
+      const catId = String(cat.id);
+      const itemsInThisCategory = itemsByCategory[catId] || [];
+      console.log(`[Audit] Category "${cat.label}" (${catId}) has ${itemsInThisCategory.length} items:`, itemsInThisCategory.map(i => i.name));
+    }
+    
+    // Check for items with invalid/missing categories
+    const invalidItems = [];
+    Object.keys(itemsByCategory).forEach(catId => {
+      if (!validCategoryIds.includes(catId) && catId !== '(missing)') {
+        invalidItems.push(...itemsByCategory[catId].map(item => ({ ...item, invalidCategory: catId })));
+      }
+    });
+    
+    if (itemsByCategory['(missing)']) {
+      invalidItems.push(...itemsByCategory['(missing)'].map(item => ({ ...item, invalidCategory: 'missing' })));
+    }
+    
+    if (invalidItems.length > 0) {
+      console.warn('[Audit] ⚠️ Found', invalidItems.length, 'items with invalid/missing categories:', invalidItems);
+      
+      // Fix invalid items - assign to first category
+      const defaultCatId = CATEGORIES[0].id;
+      const { updateDoc, serverTimestamp } = firebaseFns;
+      
+      for (const item of invalidItems) {
+        try {
+          await updateDoc(doc(householdRefRef, 'items', item.id), {
+            category: defaultCatId,
+            updatedAt: serverTimestamp()
+          });
+          console.log('[Audit] ✅ Fixed item:', item.name, '- assigned to category:', defaultCatId);
+        } catch (err) {
+          console.error('[Audit] ❌ Error fixing item:', item.name, err);
+        }
+      }
+      
+      // Reload current category
+      if (selectedCategory) {
+        setTimeout(() => selectCategory(selectedCategory), 1000);
+      }
+    } else {
+      console.log('[Audit] ✅ All items have valid category assignments');
+    }
+    
+    console.log('[Audit] ========== AUDIT COMPLETE ==========');
+  } catch (error) {
+    console.error('[Audit] Error during audit:', error);
+  }
+}
+
+// Removed - normalization is now inline in onCategoriesSnapshot
+
+// REBUILT: Simple real-time category updates
 function onCategoriesSnapshot() {
   const { collection, orderBy, query, onSnapshot } = firebaseFns;
   const catsCol = collection(householdRefRef, 'categories');
 
   onSnapshot(query(catsCol, orderBy('order', 'asc')), qs => {
-    CATEGORIES = normalizeCategories(qs);
+    // Simple category normalization
+    CATEGORIES = qs.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        label: data.label || '',
+        img: data.img || '/cat.png',
+        pinned: !!data.pinned,
+        order: data.order ?? 0
+      };
+    }).sort((a, b) => {
+      if (b.pinned && !a.pinned) return 1;
+      if (a.pinned && !b.pinned) return -1;
+      return (a.order ?? 0) - (b.order ?? 0);
+    });
+    
     renderCategories();
     attachCategoryTodoCounters();
-    restoreSelectedCategory(true);
     showShoppingBar();
+    
+    // Select category if none selected
+    if (!selectedCategory && CATEGORIES.length > 0) {
+      const saved = localStorage.getItem('gsh-shopping-category');
+      const cat = CATEGORIES.find(c => c.id === saved) || CATEGORIES[0];
+      selectCategory(cat.id);
+    } else if (selectedCategory) {
+      // Reload items for current category
+      selectCategory(selectedCategory);
+    }
   }, err => {
-    console.error('onSnapshot error for shopping categories:', err);
+    console.error('Error loading categories:', err);
   });
 }
 
-function restoreSelectedCategory(ensureItems = false) {
-  const savedShoppingCat = localStorage.getItem('gsh-shopping-category');
-  if (savedShoppingCat && CATEGORIES.find(c => c.id === savedShoppingCat)) {
-    selectCategory(savedShoppingCat);
-  } else if (!selectedCategory && CATEGORIES.length) {
-    selectCategory(CATEGORIES[0].id);
-  } else if (ensureItems && selectedCategory && CATEGORIES.length > 0) {
-    attachItemsListener(selectedCategory);
-  }
-}
+// Removed - category restoration is now inline in onCategoriesSnapshot
 
 function showShoppingBar() {
   if (getCurrentViewFn() === 'shopping') {
@@ -304,7 +462,7 @@ function showShoppingBar() {
 function renderCategories() {
   if (!shoppingCategoriesList) return;
   
-  const shoppingNavEl = document.getElementById('shoppingCategoriesNav');
+    const shoppingNavEl = document.getElementById('shoppingCategoriesNav');
   if (getCurrentViewFn() !== 'shopping') {
     if (shoppingNavEl) {
       shoppingNavEl.style.setProperty('display', 'none', 'important');
@@ -327,7 +485,7 @@ function renderCategories() {
     holder.dataset.id = c.id;
     holder.innerHTML = `
       ${c.pinned ? '<span class="absolute top-0 left-1 text-amber-500 text-xs">★</span>' : ''}
-      <span class="badge hidden" style="display: none !important; visibility: hidden !important;"></span>
+      <span class="badge hidden"></span>
       <img class="w-14 h-14 rounded-full border object-cover ${c.id === selectedCategory ? 'selected' : ''}" src="${c.img || '/cat.png'}" alt="">
       <span class="text-[11px] mt-1 text-center truncate">${c.label || ''}</span>
     `;
@@ -377,7 +535,11 @@ function renderCategories() {
 
   const cur = CATEGORIES.find(c => c.id === selectedCategory);
   if (catTitle) catTitle.textContent = cur ? cur.label : 'קטגוריות';
+  // Don't call drawItems() here - it will be called by loadItemsForCategory when items are loaded
+  // Only draw if we're not currently loading items (to avoid showing empty state during load)
+  if (!_loadingCategory && selectedCategory) {
   drawItems();
+  }
   populateImportCategoryOptions();
   populateTemplateCategoryOptions();
   refreshAllCategoryBadges();
@@ -393,15 +555,37 @@ function attachCategoryTodoCounters() {
   _todoUnsubs = [];
 
   for (const c of CATEGORIES) {
-    const qref = query(itemsCol, where('category', '==', c.id), where('status', '==', 'todo'));
+    // Ensure category ID is a string for consistent comparison
+    const catId = String(c.id);
+    const qref = query(itemsCol, where('category', '==', catId), where('status', '==', 'todo'));
     const unsub = onSnapshot(qref, qs => {
-      CATEGORY_TODO_COUNTS[c.id] = qs.size || 0;
+      // Double-check items actually belong to this category (client-side validation)
+      let validCount = 0;
       let urgentCount = 0;
       qs.forEach(docSnap => {
         const data = docSnap.data();
+        // Ensure exact match - handle potential type mismatches
+        const itemCategory = String(data.category || '').trim();
+        if (itemCategory === catId) {
+          validCount++;
         if (data?.urgent) urgentCount++;
+        } else {
+          console.warn('[BadgeCounter] Item with wrong category in query:', {
+            itemId: docSnap.id,
+            itemName: data.name,
+            expected: catId,
+            got: itemCategory
+          });
+        }
       });
+      // Use normalized string as key for consistency
+      CATEGORY_TODO_COUNTS[catId] = validCount;
+      CATEGORY_URGENT_COUNTS[catId] = urgentCount;
+      // Also store with original ID for backward compatibility
+      if (c.id !== catId) {
+        CATEGORY_TODO_COUNTS[c.id] = validCount;
       CATEGORY_URGENT_COUNTS[c.id] = urgentCount;
+      }
       refreshAllCategoryBadges();
       updateSummaryFromCounters();
     });
@@ -409,23 +593,48 @@ function attachCategoryTodoCounters() {
   }
 }
 
+// REBUILT: Simple, clean category selection
 function selectCategory(catId) {
-  // Clear all items immediately when switching categories to prevent showing wrong items
-  const oldCategory = selectedCategory;
-  selectedCategory = catId;
+  // Prevent duplicate calls
+  if (selectedCategory === catId && _loadingCategory === String(catId)) {
+    console.log('[SelectCategory] Already selected and loading category:', catId, '- skipping');
+    return;
+  }
   
-  // Clear the ITEMS object completely to prevent stale data
-  ITEMS = {};
+  // 1. Stop old listener
+  if (_itemsUnsub) {
+    _itemsUnsub();
+    _itemsUnsub = null;
+  }
   
-  // Clear the view immediately
-  drawItems();
+  // 2. Clear state and update selected category FIRST
+  CURRENT_ITEMS = [];
+  _listeningForCategory = null;
+  _loadingCategory = null; // Clear loading flag
+  selectedCategory = catId; // Update selected category BEFORE loading
   
+  // 3. Clear view
+  if (mainView) {
+    mainView.innerHTML = '<div class="p-4" style="color:var(--muted);">טוען פריטים...</div>';
+  }
+  
+  // 4. Save selection
   try {
     localStorage.setItem('gsh-shopping-category', catId || '');
   } catch (_) {}
-  const cur = CATEGORIES.find(c => c.id === catId);
-  if (catTitle) catTitle.textContent = cur ? cur.label : 'קטגוריות';
-  attachItemsListener(catId);
+  
+  // 5. Update UI (quick update first)
+  const cat = CATEGORIES.find(c => c.id === catId);
+  if (catTitle) catTitle.textContent = cat ? cat.label : 'קטגוריות';
+  
+  // 6. Load items for new category IMMEDIATELY (before renderCategories to avoid delay)
+  if (catId) {
+    loadItemsForCategory(catId);
+  } else {
+    drawItems();
+  }
+  
+  // 7. Update category UI (after starting item load)
   renderCategories();
 }
 
@@ -433,17 +642,20 @@ function applyCategoryBadge(holder, catId) {
   if (!holder) return;
   const badge = holder.querySelector('.badge');
   if (!badge) return;
-  const count = CATEGORY_TODO_COUNTS[catId] || 0;
+  // Normalize category ID to string for consistent lookup
+  const normalizedCatId = String(catId);
+  const count = CATEGORY_TODO_COUNTS[normalizedCatId] || CATEGORY_TODO_COUNTS[catId] || 0;
   if (count > 0) {
     badge.textContent = String(count);
     badge.classList.remove('hidden');
-    badge.style.display = 'flex';
-    badge.style.visibility = 'visible';
+    // Use setProperty with !important to override any inline styles
+    badge.style.setProperty('display', 'flex', 'important');
+    badge.style.setProperty('visibility', 'visible', 'important');
   } else {
     badge.textContent = '';
     badge.classList.add('hidden');
-    badge.style.display = 'none';
-    badge.style.visibility = 'hidden';
+    badge.style.setProperty('display', 'none', 'important');
+    badge.style.setProperty('visibility', 'hidden', 'important');
   }
 }
 
@@ -651,6 +863,7 @@ function handleQuickAddSave() {
   showLoading('מוסיף פריט...');
   (async () => {
     try {
+      // CRITICAL: Category field is REQUIRED - must be present and valid
       const ref = await addDoc(itemsCol, {
         name: nameVal.value,
         desc,
@@ -659,7 +872,7 @@ function handleQuickAddSave() {
         price: priceVal.value,
         img: imgUrl,
         status: 'todo',
-        category: categoryId,
+        category: categoryId, // REQUIRED FIELD - must always be set
         createdAt: serverTimestamp()
       });
       if (qaFile.files?.[0]) {
@@ -667,7 +880,13 @@ function handleQuickAddSave() {
         const path = `households/${householdId}/items/${ref.id}-${Date.now()}.jpg`;
         const uploadRef = await uploadFileAndGetURL(srefFn(storageRef, path), qaFile.files[0]);
         imgUrl = await firebaseFns.getDownloadURL(uploadRef);
-        await updateDoc(doc(householdRefRef, 'items', ref.id), { img: imgUrl, updatedAt: serverTimestamp() });
+        // CRITICAL: Preserve category field when updating image
+        const existingItem = CURRENT_ITEMS.find(i => i.id === ref.id);
+        await updateDoc(doc(householdRefRef, 'items', ref.id), { 
+          img: imgUrl, 
+          category: existingItem?.category || categoryId, // Preserve category
+          updatedAt: serverTimestamp() 
+        });
       }
       qaModal.classList.remove('show');
       toast('פריט נוסף בהצלחה');
@@ -680,54 +899,139 @@ function handleQuickAddSave() {
   })();
 }
 
-function attachItemsListener(catId) {
-  if (!catId) {
-    // Clear items if no category selected
-    if (_itemsUnsub) {
-      _itemsUnsub();
-      _itemsUnsub = null;
+// Helper function to process items from a snapshot
+function processItemsSnapshot(snapshot, exactCategoryId, catId) {
+  const items = [];
+  const wrongCategoryItems = [];
+  
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    // Normalize category for comparison - handle type mismatches
+    const itemCategory = String(data.category || '').trim();
+    const itemName = data.name || 'Unknown';
+    
+    // ABSOLUTE CHECK: Category must match EXACTLY (string comparison after normalization)
+    if (itemCategory === exactCategoryId) {
+      items.push({
+        id: doc.id,
+        ...data,
+        category: exactCategoryId // Force exact category
+      });
+    } else {
+      wrongCategoryItems.push({
+        id: doc.id,
+        name: itemName,
+        expected: exactCategoryId,
+        got: itemCategory
+      });
+      console.error('[LoadItems] ⚠️ WRONG CATEGORY ITEM:', itemName, 'Expected:', exactCategoryId, 'Got:', itemCategory);
     }
-    ITEMS = {};
+  });
+  
+  if (wrongCategoryItems.length > 0) {
+    console.error('[LoadItems] Found', wrongCategoryItems.length, 'items with WRONG category in query results!');
+  }
+  
+  return items;
+}
+
+// REBUILT: ABSOLUTE item loading - ONLY items with exact category match
+// Now uses getDocs for immediate loading, then onSnapshot for real-time updates
+function loadItemsForCategory(catId) {
+  if (!catId) {
+    CURRENT_ITEMS = [];
     drawItems();
     return;
   }
-  const { collection, where, query, onSnapshot } = firebaseFns;
-  const itemsCol = collection(householdRefRef, 'items');
   
-  // Unsubscribe from previous listener
+  const exactCategoryId = String(catId);
+  
+  // Prevent duplicate calls for the same category
+  if (_loadingCategory === exactCategoryId) {
+    console.log('[LoadItems] Already loading category:', exactCategoryId, '- skipping duplicate call');
+    return;
+  }
+  
+  // Stop any existing listener FIRST
   if (_itemsUnsub) {
     _itemsUnsub();
     _itemsUnsub = null;
   }
   
-  // Store the category ID we're listening for to prevent race conditions
-  const listeningForCategory = catId;
+  // CRITICAL: Clear items and set listening category BEFORE creating new listener
+  CURRENT_ITEMS = [];
+  _listeningForCategory = catId;
+  _loadingCategory = exactCategoryId; // Mark as loading
   
-  _itemsUnsub = onSnapshot(query(itemsCol, where('category', '==', catId)), qs => {
-    // Triple-check: Only update if we're still listening for this exact category
-    // This prevents race conditions when switching categories quickly
-    if (selectedCategory === listeningForCategory && selectedCategory === catId && _itemsUnsub) {
-      const items = qs.docs.map(d => {
-        const data = d.data();
-        // Ensure each item actually belongs to this category (defense in depth)
-        if (data.category !== catId) {
-          console.warn('Item with wrong category found:', d.id, 'expected:', catId, 'got:', data.category);
-          return null;
-        }
-        return { id: d.id, ...data };
-      }).filter(item => item !== null); // Filter out any null items
-      
-      // Final check before updating
-      if (selectedCategory === catId && listeningForCategory === catId) {
-        ITEMS[catId] = items;
-        drawItems();
-      }
+  // Clear view
+  if (mainView) {
+    mainView.innerHTML = '<div class="p-4" style="color:var(--muted);">טוען פריטים...</div>';
+  }
+  
+  const { collection, query, where, onSnapshot, getDocs } = firebaseFns;
+  const itemsCol = collection(householdRefRef, 'items');
+  
+  // Debug: Log what we're querying for
+  console.log('[LoadItems] Querying for category:', exactCategoryId, 'Type:', typeof exactCategoryId);
+  console.log('[LoadItems] Selected category:', selectedCategory);
+  console.log('[LoadItems] Available categories:', CATEGORIES.map(c => ({ id: c.id, label: c.label })));
+  
+  const itemsQuery = query(itemsCol, where('category', '==', exactCategoryId));
+  
+  // STEP 1: Immediately fetch items using getDocs (uses cache if available)
+  getDocs(itemsQuery).then((snapshot) => {
+    // Check if this is still the category we want - use the catId parameter, not selectedCategory
+    if (_loadingCategory !== exactCategoryId) {
+      console.log('[LoadItems] getDocs result ignored - category changed. Loading:', _loadingCategory, 'Expected:', exactCategoryId);
+      return;
     }
-  }, error => {
-    console.error('Error loading items:', error);
-    if (error.code === 'unavailable') {
-      toast('מצב offline - טוען מקאש', 2000);
+    
+    console.log('[LoadItems] getDocs returned', snapshot.size, 'documents for category:', catId);
+    
+    const items = processItemsSnapshot(snapshot, exactCategoryId, catId);
+    
+    console.log('[LoadItems] Loaded', items.length, 'correct items for category:', catId);
+    
+    // Update items immediately if still the correct category
+    if (_loadingCategory === exactCategoryId) {
+      CURRENT_ITEMS = items; // Replace, don't merge
+      console.log('[LoadItems] Updated CURRENT_ITEMS with', items.length, 'items (immediate)');
+      drawItems();
+      } else {
+      console.log('[LoadItems] Category changed - not updating items');
     }
+  }).catch((error) => {
+    console.error('[LoadItems] Error in getDocs:', error);
+    _loadingCategory = null; // Clear loading flag on error
+  });
+  
+  // STEP 2: Set up real-time listener for updates
+  console.log('[LoadItems] Setting up listener for category:', catId);
+  
+  _itemsUnsub = onSnapshot(itemsQuery, (snapshot) => {
+    // Check if this is still the category we want - use the catId parameter
+    if (_loadingCategory !== exactCategoryId) {
+      console.log('[LoadItems] Snapshot ignored - category changed. Loading:', _loadingCategory, 'Expected:', exactCategoryId);
+      return;
+    }
+    
+    console.log('[LoadItems] Received snapshot with', snapshot.size, 'documents for category:', catId);
+    
+    const items = processItemsSnapshot(snapshot, exactCategoryId, catId);
+    
+    console.log('[LoadItems] Loaded', items.length, 'correct items for category:', catId);
+    
+    // Update items if still the correct category
+    if (_loadingCategory === exactCategoryId) {
+      CURRENT_ITEMS = items; // Replace, don't merge
+      console.log('[LoadItems] Updated CURRENT_ITEMS with', items.length, 'items (real-time)');
+      drawItems();
+    } else {
+      console.log('[LoadItems] Category changed - not updating items');
+    }
+  }, (error) => {
+    console.error('[LoadItems] Error in onSnapshot:', error);
+    _loadingCategory = null; // Clear loading flag on error
   });
 }
 
@@ -739,44 +1043,98 @@ const debouncedDrawItems = () => {
 
 function drawItems() {
   if (!mainView) return;
-  const all = selectedCategory ? ITEMS[selectedCategory] || [] : [];
-  // Additional safety: filter out any items that don't match the selected category
-  // This prevents items from one category showing in another
-  const categoryFiltered = all.filter(item => {
-    if (!item || !selectedCategory) return false;
-    // Ensure item actually belongs to selected category
-    return item.category === selectedCategory;
+
+  // MEMORY LEAK PREVENTION: Clear old content (which will remove old event listeners)
+  // Since we're replacing innerHTML below, old listeners will be garbage collected
+
+  // No category selected - show empty state
+  if (!selectedCategory) {
+    if (openCountEl) openCountEl.textContent = '—';
+    mainView.innerHTML = '<div class="p-4" style="color:var(--muted);">בחר קטגוריה.</div>';
+    return;
+  }
+  
+  // CRITICAL: Get items - CURRENT_ITEMS should already be filtered by category in loadItemsForCategory
+  // Use _loadingCategory if available (more reliable than selectedCategory during transitions)
+  let items = Array.isArray(CURRENT_ITEMS) ? CURRENT_ITEMS : [];
+  const expectedCat = _loadingCategory || String(selectedCategory);
+  
+  // Additional safety filter: Only items with EXACT category match (defensive check)
+  // This should rarely be needed since loadItemsForCategory already filters, but it's a safety net
+  const filteredItems = [];
+  const wrongItems = [];
+  
+  items.forEach(item => {
+    if (!item || !item.id) {
+      console.warn('[Draw] Skipping invalid item - missing id');
+      return;
+    }
+    
+    if (!item.category) {
+      console.warn('[Draw] Skipping item - missing category:', item.id, item.name);
+      return;
+    }
+    
+    // ABSOLUTE EXACT MATCH: Normalize both sides for comparison
+    const itemCategory = String(item.category).trim();
+    if (itemCategory === expectedCat) {
+      filteredItems.push(item);
+    } else {
+      wrongItems.push({
+        id: item.id,
+        name: item.name,
+        expected: expectedCat,
+        got: itemCategory
+      });
+      console.error('[Draw] ⚠️ REMOVING item with WRONG category!', 
+        'Item:', item.name,
+        'Item ID:', item.id, 
+        'Expected category:', expectedCat, 
+        'Item category:', itemCategory);
+    }
   });
-  const raw = (searchEl?.value || '').trim().toLowerCase();
-  const filtered = raw ? categoryFiltered.filter(i => (i.name || '').toLowerCase().includes(raw)) : categoryFiltered;
+  
+  if (wrongItems.length > 0) {
+    console.error('[Draw] ⚠️⚠️⚠️ REMOVED', wrongItems.length, 'items with WRONG categories!');
+  }
+  
+  items = filteredItems;
+  
+  console.log('[Draw] Rendering', items.length, 'items for category:', expectedCat);
+  
+  // Apply search filter if there's a search term
+  const searchTerm = (searchEl?.value || '').trim().toLowerCase();
+  if (searchTerm) {
+    items = items.filter(item => {
+      const name = (item.name || '').toLowerCase();
+      return name.includes(searchTerm);
+    });
+  }
 
-  clearSearchBtn?.classList.toggle('hidden', !raw);
+  clearSearchBtn?.classList.toggle('hidden', !searchTerm);
 
-  // Always create a fresh container with spacing - match notes screen pattern exactly
+  // No items to show - display empty state
+  if (items.length === 0) {
+    if (openCountEl) openCountEl.textContent = searchTerm ? 'לא נמצאו תוצאות' : 'אין פריטים';
+    const emptyMsg = searchTerm 
+      ? 'לא נמצאו תוצאות עבור החיפוש.'
+      : 'אין פריטים בקטגוריה הזו.';
+    mainView.innerHTML = `<div class="p-4" style="color:var(--muted);">${emptyMsg}</div>`;
+    return;
+  }
+
+  // Create container for items
   mainView.innerHTML = '';
   const itemsContainer = document.createElement('div');
-  // Set all spacing styles explicitly - no relying on classes
   itemsContainer.style.display = 'flex';
   itemsContainer.style.flexDirection = 'column';
   itemsContainer.style.gap = '12px';
   itemsContainer.style.width = '100%';
   itemsContainer.className = 'flex flex-col gap-3';
-  
-  // Append container to mainView first, before any early returns
   mainView.appendChild(itemsContainer);
 
-  if (!selectedCategory) {
-    if (openCountEl) openCountEl.textContent = '—';
-    itemsContainer.innerHTML = '<div class="p-4" style="color:var(--muted);">בחר קטגוריה.</div>';
-    return;
-  }
-  if (!filtered.length) {
-    if (openCountEl) openCountEl.textContent = 'אין פריטים';
-    itemsContainer.innerHTML = '<div class="p-4" style="color:var(--muted);">אין פריטים בקטגוריה הזו.</div>';
-    return;
-  }
-
-  filtered.sort((a, b) => {
+  // Sort items: undone first, then by creation date (newest first)
+  items.sort((a, b) => {
     const sa = a.status === 'done' ? 1 : 0;
     const sb = b.status === 'done' ? 1 : 0;
     if (sa !== sb) return sa - sb;
@@ -785,19 +1143,18 @@ function drawItems() {
     return tb - ta;
   });
 
-  const open = filtered.filter(i => i.status !== 'done').length;
-  if (openCountEl) openCountEl.textContent = `${open} פריטים`;
+  // Count open (not done) items
+  const openCount = items.filter(i => i.status !== 'done').length;
+  if (openCountEl) openCountEl.textContent = `${openCount} פריטים`;
 
-  filtered.forEach((item, index) => {
+  // Render each item
+  items.forEach((item, index) => {
     const card = document.createElement('div');
-    card.className = 'row p-3 cursor-pointer ' + (item.status === 'done' ? 'purchased' : '');
+    card.className = 'row cursor-pointer ' + (item.status === 'done' ? 'purchased' : '');
     card.style.display = 'flex';
     card.style.alignItems = 'center';
     card.style.gap = '12px';
-    // Add margin-top to all items except the first for spacing
-    if (index > 0) {
-      card.style.marginTop = '12px';
-    }
+    // Spacing is handled by parent gap
     if (item.urgent && item.status !== 'done') {
       card.classList.add('urgent');
       card.style.borderLeft = '4px solid #dc2626';
@@ -813,46 +1170,109 @@ function drawItems() {
     const isDone = item.status === 'done';
     const isUrgent = item.urgent && !isDone;
 
-    // Left side: Content
+    // Left side: Content - SAFE DOM CREATION (prevents XSS)
     const contentDiv = document.createElement('div');
     contentDiv.className = 'flex-1 min-w-0';
-    contentDiv.innerHTML = `
-      ${itemImg ? `<img src="${itemImg}" class="w-12 h-12 rounded-full border object-cover mb-2" style="border-color:var(--border);" alt="${itemName}" oncontextmenu="event.preventDefault();">` : ''}
-      ${itemName ? `<div class="font-semibold mb-1 text-sm ${isDone ? 'line-through opacity-60' : ''} ${isUrgent ? 'text-[#dc2626] font-bold' : ''}">${itemName}</div>` : ''}
-      ${itemDesc ? `<div class="text-xs mb-1" style="color:var(--muted); ${isDone ? 'opacity:0.6;' : ''}">${itemDesc}</div>` : ''}
-      ${itemNote ? `<div class="text-[11px] text-amber-600 mb-1">${itemNote}</div>` : ''}
-      <div class="flex items-center gap-2 mt-1">
-        <button class="qty-minus w-7 h-7 border rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0" style="color:var(--text); border-color:var(--border); ${isDone ? 'opacity:0.6;' : ''}">−</button>
-        <div class="min-w-[28px] text-center font-semibold text-xs" style="${isDone ? 'opacity:0.6;' : ''}">${itemQty}</div>
-        <button class="qty-plus w-7 h-7 border rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0" style="color:var(--text); border-color:var(--border); ${isDone ? 'opacity:0.6;' : ''}">+</button>
-        <div class="price-display px-2 py-0.5 border rounded text-center text-xs" style="border-color:var(--border); ${isDone ? 'opacity:0.6;' : ''}">${itemPrice}</div>
-      </div>
-    `;
+    
+    // Item image (if exists)
+    if (itemImg) {
+      const img = createElement('img', {
+        className: 'w-12 h-12 rounded-full border object-cover mb-2',
+        style: { borderColor: 'var(--border)' },
+        alt: itemName || ''
+      });
+      img.src = itemImg;
+      img.addEventListener('contextmenu', (e) => e.preventDefault());
+      contentDiv.appendChild(img);
+    }
+    
+    // Item name (safe text content)
+    if (itemName) {
+      const nameDiv = createElement('div', {
+        className: `font-semibold mb-1 text-sm ${isDone ? 'line-through opacity-60' : ''} ${isUrgent ? 'text-[#dc2626] font-bold' : ''}`
+      }, itemName);
+      contentDiv.appendChild(nameDiv);
+    }
+    
+    // Item description (safe text content)
+    if (itemDesc) {
+      const descDiv = createElement('div', {
+        className: 'text-xs mb-1',
+        style: {
+          color: 'var(--muted)',
+          opacity: isDone ? '0.6' : '1'
+        }
+      }, itemDesc);
+      contentDiv.appendChild(descDiv);
+    }
+    
+    // Item note (safe text content)
+    if (itemNote) {
+      const noteDiv = createElement('div', {
+        className: 'text-[11px] text-amber-600 mb-1'
+      }, itemNote);
+      contentDiv.appendChild(noteDiv);
+    }
+    
+    // Quantity and price controls
+    const controlsDiv = createElement('div', {
+      className: 'flex items-center gap-2 mt-1'
+    });
+    
+    const qtyMinusBtn = createElement('button', {
+      className: 'qty-minus w-7 h-7 border rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0',
+      style: {
+        color: 'var(--text)',
+        borderColor: 'var(--border)',
+        opacity: isDone ? '0.6' : '1'
+      }
+    }, '−');
+    controlsDiv.appendChild(qtyMinusBtn);
+    
+    const qtyDisplay = createElement('div', {
+      className: 'qty-display min-w-[28px] text-center font-semibold text-xs',
+      style: { opacity: isDone ? '0.6' : '1' }
+    }, String(itemQty));
+    controlsDiv.appendChild(qtyDisplay);
+    
+    const qtyPlusBtn = createElement('button', {
+      className: 'qty-plus w-7 h-7 border rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0',
+      style: {
+        color: 'var(--text)',
+        borderColor: 'var(--border)',
+        opacity: isDone ? '0.6' : '1'
+      }
+    }, '+');
+    controlsDiv.appendChild(qtyPlusBtn);
+    
+    const priceDisplay = createElement('div', {
+      className: 'price-display px-2 py-0.5 border rounded text-center text-xs',
+      style: {
+        borderColor: 'var(--border)',
+        opacity: isDone ? '0.6' : '1'
+      }
+    }, itemPrice);
+    controlsDiv.appendChild(priceDisplay);
+    
+    contentDiv.appendChild(controlsDiv);
 
     // Right side: Big urgent/regular button, vertically centered
     const buttonDiv = document.createElement('div');
     buttonDiv.className = 'flex items-center justify-center flex-shrink-0';
     const statusButton = document.createElement('button');
     statusButton.className = 'status-btn font-bold rounded-lg transition-all';
+    // Buying button: red \"לקנות\" when not done, green \"נקנה\" when done
     if (isDone) {
       statusButton.textContent = 'נקנה';
       statusButton.style.background = '#10b981';
       statusButton.style.color = '#fff';
-      statusButton.style.padding = '24px 16px';
-      statusButton.style.fontSize = '14px';
-    } else if (isUrgent) {
-      statusButton.textContent = 'דחוף';
+    } else {
+      statusButton.textContent = 'לקנות';
       statusButton.style.background = '#dc2626';
       statusButton.style.color = '#fff';
-      statusButton.style.padding = '24px 16px';
-      statusButton.style.fontSize = '14px';
-    } else {
-      statusButton.textContent = 'רגיל';
-      statusButton.style.background = 'var(--accent)';
-      statusButton.style.color = 'var(--bg)';
-      statusButton.style.padding = '24px 16px';
-      statusButton.style.fontSize = '14px';
     }
+    statusButton.style.padding = '24px 16px';
+    statusButton.style.fontSize = '14px';
     
     statusButton.addEventListener('click', async (e) => {
       e.stopPropagation();
@@ -865,50 +1285,57 @@ function drawItems() {
     card.appendChild(contentDiv);
     card.appendChild(buttonDiv);
 
-    // Wire up event listeners
-    const qtyMinus = contentDiv.querySelector('.qty-minus');
-    const qtyPlus = contentDiv.querySelector('.qty-plus');
-    const priceEl = contentDiv.querySelector('.price-display');
-
-    if (qtyMinus && !isDone) {
-      qtyMinus.addEventListener('click', (e) => {
-        e.stopPropagation();
-        navigator.vibrate?.(8);
-        firebaseFns.updateDoc(firebaseFns.doc(householdRefRef, 'items', item.id), { qty: Math.max(0, itemQty - 1), updatedAt: firebaseFns.serverTimestamp() });
+    // Wire up event listeners (using direct references from creation above)
+    qtyMinusBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navigator.vibrate?.(8);
+      const current = Number(qtyDisplay.textContent || itemQty || 0);
+      const nextQty = Math.max(0, current - 1);
+      setTextContent(qtyDisplay, String(nextQty));
+      // CRITICAL: Preserve category field when updating quantity
+      firebaseFns.updateDoc(firebaseFns.doc(householdRefRef, 'items', item.id), { 
+        qty: nextQty, 
+        category: item.category, // Preserve category
+        updatedAt: firebaseFns.serverTimestamp() 
       });
-    } else if (qtyMinus) {
-      qtyMinus.disabled = true;
-    }
+    });
 
-    if (qtyPlus && !isDone) {
-      qtyPlus.addEventListener('click', (e) => {
-        e.stopPropagation();
-        navigator.vibrate?.(8);
-        firebaseFns.updateDoc(firebaseFns.doc(householdRefRef, 'items', item.id), { qty: itemQty + 1, updatedAt: firebaseFns.serverTimestamp() });
+    qtyPlusBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navigator.vibrate?.(8);
+      const current = Number(qtyDisplay.textContent || itemQty || 0);
+      const nextQty = current + 1;
+      setTextContent(qtyDisplay, String(nextQty));
+      // CRITICAL: Preserve category field when updating quantity
+      firebaseFns.updateDoc(firebaseFns.doc(householdRefRef, 'items', item.id), { 
+        qty: nextQty, 
+        category: item.category, // Preserve category
+        updatedAt: firebaseFns.serverTimestamp() 
       });
-    } else if (qtyPlus) {
-      qtyPlus.disabled = true;
-    }
+    });
 
-    if (priceEl) {
-      priceEl.addEventListener('dblclick', (e) => {
+    priceDisplay.addEventListener('dblclick', (e) => {
         e.stopPropagation();
-        const currentPrice = item.price ?? 0;
-        const input = prompt('עדכון מחיר ליחידה (₪):', currentPrice);
-        if (input === null) return;
-        const priceVal = validatePrice(input);
-        if (!priceVal.valid) {
-          toast(priceVal.error);
-          return;
-        }
-        firebaseFns
-          .updateDoc(firebaseFns.doc(householdRefRef, 'items', item.id), { price: priceVal.value, updatedAt: firebaseFns.serverTimestamp() })
-          .catch(e => {
-            console.error(e);
-            toast('שגיאה בעדכון מחיר');
-          });
-      });
-    }
+      const currentPrice = item.price ?? 0;
+      const input = prompt('עדכון מחיר ליחידה (₪):', currentPrice);
+      if (input === null) return;
+      const priceVal = validatePrice(input);
+      if (!priceVal.valid) {
+        toast(priceVal.error);
+        return;
+      }
+      // CRITICAL: Preserve category field when updating price
+      firebaseFns
+        .updateDoc(firebaseFns.doc(householdRefRef, 'items', item.id), { 
+          price: priceVal.value, 
+          category: item.category, // Preserve category
+          updatedAt: firebaseFns.serverTimestamp() 
+        })
+        .catch(e => {
+          console.error(e);
+          toast('שגיאה בעדכון מחיר');
+        });
+    });
 
     // Long press to edit
     let longPressTimer = null;
@@ -918,7 +1345,7 @@ function drawItems() {
     card.addEventListener('pointerdown', (e) => {
       if (e.target.tagName === 'BUTTON') return;
       longPressTimer = setTimeout(() => {
-        openItemEditor(item);
+      openItemEditor(item);
         navigator.vibrate?.(20);
       }, 500);
     });
@@ -949,7 +1376,23 @@ function drawItems() {
 
 async function setPurchased(item, done) {
   const { doc, updateDoc, serverTimestamp } = firebaseFns;
-  await updateDoc(doc(householdRefRef, 'items', item.id), { status: done ? 'done' : 'todo', updatedAt: serverTimestamp() });
+  
+  // CRITICAL: Always preserve category field when updating status
+  const currentCategory = item.category || selectedCategory;
+  
+  if (!currentCategory) {
+    console.error('[setPurchased] Missing category for item:', item.id, item.name);
+    toast('שגיאה: קטגוריה חסרה');
+    return;
+  }
+  
+  const updateData = {
+    status: done ? 'done' : 'todo',
+    category: currentCategory, // ALWAYS include category
+    updatedAt: serverTimestamp()
+  };
+  
+  await updateDoc(doc(householdRefRef, 'items', item.id), updateData);
   if (done) await logPurchase(item);
   toast(done ? 'סומן כנקנה' : 'הוחזר ללא נקנה');
 }
@@ -1032,16 +1475,24 @@ function handleItemSave() {
   const desc = (ieDesc.value || '').trim();
   const note = (ieNote.value || '').trim();
   const newCatId = ieCategory?.value || selectedCategory || null;
+  
+  // CRITICAL: Category field is REQUIRED - ensure it's always set
+  if (!newCatId) {
+    toast('קטגוריה נדרשת - אנא בחר קטגוריה');
+    return;
+  }
+  
   showLoading('מעדכן פריט...');
   (async () => {
     try {
+      // CRITICAL: Always include category field - it's required
       await updateDoc(doc(householdRefRef, 'items', id), {
         name: nameVal.value,
         desc,
         note,
         qty: qtyVal.value,
         price: priceVal.value,
-        ...(newCatId ? { category: newCatId } : {}),
+        category: newCatId, // REQUIRED - always set category field
         updatedAt: serverTimestamp()
       });
       if (ieFile.files?.[0]) {
@@ -1049,7 +1500,13 @@ function handleItemSave() {
         const path = `households/${householdId}/items/${id}-${Date.now()}.jpg`;
         const uploadRef = await uploadFileAndGetURL(srefFn(storageRef, path), ieFile.files[0]);
         const url = await firebaseFns.getDownloadURL(uploadRef);
-        await updateDoc(doc(householdRefRef, 'items', id), { img: url, updatedAt: serverTimestamp() });
+        // CRITICAL: Preserve category field when updating image
+        const existingItem = CURRENT_ITEMS.find(i => i.id === id);
+        await updateDoc(doc(householdRefRef, 'items', id), { 
+          img: url, 
+          category: existingItem?.category || newCatId, // Preserve category
+          updatedAt: serverTimestamp() 
+        });
       }
       ieModal.classList.remove('show');
       if (newCatId && newCatId !== selectedCategory) toast('הפריט הועבר לקטגוריה חדשה');
@@ -1333,7 +1790,7 @@ function saveTemplateFromCurrent() {
     toast('בחרו קטגוריה פעילה לשמירה');
     return;
   }
-  const sourceItems = ITEMS[selectedCategory];
+  const sourceItems = CURRENT_ITEMS;
   if (!sourceItems) {
     toast('הנתונים עדיין נטענים, נסו שוב בעוד רגע');
     return;
@@ -1364,5 +1821,10 @@ function updateSummaryFromCounters() {
 }
 
 // Export functions so they can be called from outside the module if needed
-export { drawItems, attachItemsListener };
+// Export wrapper for backward compatibility
+function attachItemsListener(catId) {
+  return loadItemsForCategory(catId);
+}
+
+export { drawItems, attachItemsListener, openQuickAdd, selectCategory };
 

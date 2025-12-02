@@ -19,25 +19,19 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 <body style="background:var(--bg); color:var(--text);">
-  <!-- SPLASH SCREEN -->
-  <div id="splashScreen" class="fixed inset-0 z-[200] flex flex-col items-center justify-between" style="background:var(--bg); cursor:pointer;" onclick="dismissSplashScreen()" ontouchstart="dismissSplashScreen()">
+  <!-- SPLASH SCREEN - FULL SCREEN (Material 3) -->
+  <div id="splashScreen">
     <!-- Centered main content -->
-    <div class="flex-1 flex flex-col items-center justify-center">
-      <img src="/GSH.png" alt="GSH" class="w-24 h-24 mb-4 animate-pulse">
-      <div class="text-lg font-semibold" style="color:var(--text);">GSH</div>
-      <div class="text-sm mt-2" style="color:var(--muted);">טוען...</div>
+    <div class="splash-center">
+      <img src="/GSH.png" alt="GSH" class="w-24 h-24 mb-4 animate-pulse" style="width:96px; height:96px; margin-bottom:1rem;">
+      <div class="splash-title">GSH</div>
+      <div class="splash-subtitle">טוען את האפליקציה…</div>
     </div>
     
     <!-- Warpcodes brand at the bottom -->
-    <div class="pb-6 flex flex-col items-center gap-2">
-      <img src="/WCdark.png" alt="Warpcodes" class="h-12 w-auto opacity-70" style="max-height: 48px;">
-      <div class="text-sm" style="color:var(--muted); opacity: 0.6; font-weight: 500;">Warpcodes</div>
-      <button id="splashContinueBtn" class="hidden mt-3 px-4 py-2 rounded-xl border text-sm font-semibold transition-all" style="color:var(--text); border-color:var(--border); background:var(--card);">
-        המשך
-      </button>
-      <div id="splashContinueHint" class="text-xs text-center hidden" style="color:var(--muted); opacity:0.7;">
-        אם המסך נשאר הרבה זמן, לחצו המשך
-      </div>
+    <div class="splash-footer">
+      <img src="/WCdark.png" alt="Warpcodes" class="h-12 w-auto opacity-70" style="max-height:48px; height:48px; width:auto; opacity:0.7;">
+      <div class="text-sm" style="color:var(--muted); opacity:0.6; font-weight:500; font-size:0.875rem;">Warpcodes</div>
     </div>
   </div>
   
@@ -70,64 +64,74 @@
     </div>
     
     <!-- Row 2: 4 Navigation Tabs -->
-    <div class="flex items-center justify-around" style="border-top: 1px solid var(--border);">
-      <button id="navShopping" class="nav-tab active flex flex-col items-center justify-center gap-1 flex-1" style="min-width: 0;">
-        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+    <div class="nav-tabs-container" style="border-top: 1px solid var(--border); display: flex; position: relative;">
+      <button id="navShopping" class="nav-tab active flex flex-col items-center justify-center gap-1 flex-1" style="min-width: 0;" aria-label="רשימת קניות" role="tab" aria-selected="true">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
         <span class="text-xs truncate w-full text-center">קניות</span>
       </button>
-      <button id="navTasks" class="nav-tab flex flex-col items-center justify-center gap-1 flex-1" style="min-width: 0;">
-        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+      <button id="navTasks" class="nav-tab flex flex-col items-center justify-center gap-1 flex-1" style="min-width: 0;" aria-label="רשימת משימות" role="tab" aria-selected="false">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
         <span class="text-xs truncate w-full text-center">משימות</span>
       </button>
-      <button id="navNotes" class="nav-tab flex flex-col items-center justify-center gap-1 flex-1" style="min-width: 0;">
-        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+      <button id="navNotes" class="nav-tab flex flex-col items-center justify-center gap-1 flex-1" style="min-width: 0;" aria-label="רשימת פתקים" role="tab" aria-selected="false">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
         <span class="text-xs truncate w-full text-center">פתקים</span>
       </button>
-      <button id="navReminders" class="nav-tab flex flex-col items-center justify-center gap-1 flex-1" style="min-width: 0;">
-        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <button id="navReminders" class="nav-tab flex flex-col items-center justify-center gap-1 flex-1" style="min-width: 0;" aria-label="רשימת תזכורות" role="tab" aria-selected="false">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         <span class="text-xs truncate w-full text-center">תזכורות</span>
       </button>
     </div>
   </header>
-  
-      <!-- Shopping View Header -->
-      <div id="shoppingHeader" class="shopping-header">
-    <div class="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-3">
-        <div class="flex items-center justify-between gap-2 flex-wrap">
-        <div id="catTitle" class="font-semibold text-lg">קטגוריות</div>
-          <div class="flex items-center gap-2 flex-wrap">
-            <button id="addShoppingItemBtn" class="text-sm border rounded px-3 py-1.5 bg-blue-100" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--card)'">הוסף פריט</button>
+
+  <!-- Unified App Bar (Material 3) -->
+  <header id="appBar" class="app-bar">
+    <div class="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-3 py-3 flex flex-col gap-3">
+      <!-- Top row: title + version + actions -->
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <div class="flex items-baseline gap-2 min-w-0">
+          <div id="appBarTitle" class="font-semibold text-lg truncate" style="color:var(--text);">רשימת קניות</div>
+          <span id="appVersion" class="text-xs" style="color:var(--muted);">v1.0.2</span>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Shopping actions -->
+          <div id="appBarActionsShopping" class="flex items-center gap-2">
             <button id="templatesBtn" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">תבניות</button>
             <button id="importBtn" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">ייבוא רשימה</button>
           </div>
-      </div>
-      <div class="mt-3 relative">
-          <input id="search" type="search" placeholder="חיפוש לפי שם פריט…" class="w-full rounded-lg border px-3 py-2 pr-9 focus:outline-none focus:ring" style="background:var(--input-bg); color:var(--input-text); border-color:var(--border);">
-          <button id="clearSearch" class="absolute left-2 top-1/2 -translate-y-1/2 text-xs hidden" style="color:var(--muted);">נקה</button>
-      </div>
-        <div id="openCount" class="mt-2 text-sm" style="color:var(--text);">—</div>
-      </div>
-  </div>
-  
-      <!-- Tasks View Header -->
-      <div id="tasksHeader" class="tasks-header hidden">
-    <div class="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-3">
-        <div class="flex items-center justify-between gap-2 flex-wrap">
-          <div id="taskCatTitle" class="font-semibold text-lg">קטגוריות משימות</div>
-          <div class="flex items-center gap-2">
-          <button id="tasksTabList" class="text-sm border rounded px-3 py-1.5" style="color:var(--bg); border-color:var(--accent); background:var(--accent);">רשימה</button>
-          <button id="tasksTabGantt" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);">ציר זמן</button>
-            <button id="addTaskBtn" class="text-sm border rounded px-3 py-1.5 bg-blue-100" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--card)'">הוסף משימה</button>
+          <!-- Tasks actions -->
+          <div id="appBarActionsTasks" class="flex items-center gap-2 hidden">
+            <button id="tasksTabList" class="text-sm border rounded px-3 py-1.5" style="color:var(--bg); border-color:var(--accent); background:var(--accent);">רשימה</button>
+            <button id="tasksTabGantt" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);">ציר זמן</button>
+          </div>
+          <!-- Notes actions -->
+          <div id="appBarActionsNotes" class="flex items-center gap-2 hidden">
+            <button id="notesViewToggle" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);">תצוגת רשימה</button>
+            <button id="notesFilterBtn" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);">מסננים</button>
+          </div>
+          <!-- Reminders actions -->
+          <div id="appBarActionsReminders" class="flex items-center gap-2 hidden">
+            <button id="remindersFilterAll" class="text-sm border rounded px-3 py-1.5 active" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">הכל</button>
+            <button id="remindersFilterActive" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">פעילות</button>
+            <button id="remindersFilterDone" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">הושלמו</button>
           </div>
         </div>
       </div>
+      <!-- Search row -->
+      <div class="mt-1 relative">
+        <input id="search" type="search" placeholder="חיפוש…" class="w-full rounded-lg border px-3 py-2 pr-9 focus:outline-none focus:ring" style="background:var(--input-bg); color:var(--input-text); border-color:var(--border);" aria-label="חיפוש">
+        <button id="clearSearch" class="absolute left-2 top-1/2 -translate-y-1/2 text-xs hidden" style="color:var(--muted);" aria-label="נקה חיפוש">נקה</button>
+      </div>
+      <!-- Supporting text (used by shopping for open count) -->
+      <div id="openCount" class="text-sm" style="color:var(--text);">—</div>
     </div>
+  </header>
 
   <!-- MAIN: רשימת קניות -->
-  <main id="mainView" class="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-3 py-3" style="padding-bottom: calc(var(--footer-h) + 20px);"></main>
+  <main id="mainView" class="w-full max-w-7xl mx-auto py-3" style="padding: 16px; padding-bottom: calc(var(--footer-h) + 20px);"></main>
   
   <!-- MAIN: Tasks View -->
-  <main id="tasksView" class="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-3 py-3 hidden" style="padding-bottom: calc(var(--footer-h) + 20px);">
+  <main id="tasksView" class="w-full max-w-7xl mx-auto py-3 hidden" style="padding: 16px; padding-bottom: calc(var(--footer-h) + 20px);">
     <!-- Tasks List View -->
     <div id="tasksListView" class="flex flex-col gap-3">
       <div id="tasksList" class="flex flex-col gap-3 mb-4"></div>
@@ -176,6 +180,10 @@
             <button id="ganttNextTask" class="text-xs px-2 py-1 rounded" style="color:var(--text);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'" title="משימה הבאה">משימה ►</button>
             <button id="ganttJumpTo" class="text-xs px-2 py-1 rounded" style="color:var(--text);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'" title="קפוץ לתאריך">📅</button>
           </div>
+          <!-- Direction Toggle -->
+          <div class="flex items-center gap-1 border rounded px-2 py-1" style="border-color:var(--border);">
+            <button id="ganttDirectionToggle" class="text-xs px-2 py-1 rounded" style="color:var(--text);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'" title="החלף כיוון ציר זמן">⇄ כיוון</button>
+          </div>
         </div>
       </div>
       <!-- Gantt Legend -->
@@ -212,39 +220,26 @@
     </div>
   </main>
 
-  <!-- Notes Header -->
-  <header id="notesHeader" class="sticky top-0 z-40 border-b mb-3 hidden" style="background:var(--bg); border-color:var(--border);">
-    <div class="max-w-5xl mx-auto p-3">
-      <div class="flex items-center justify-between gap-2 flex-wrap mb-3">
-        <div class="font-semibold text-lg" style="color:var(--text);">פתקים</div>
-        <div class="flex items-center gap-2">
-          <button id="addNoteBtn" class="text-sm border rounded px-3 py-1.5 bg-blue-100" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--card)'">הוסף פתק</button>
-          <button id="notesViewToggle" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);">תצוגת רשימה</button>
-          <button id="notesFilterBtn" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);">מסננים</button>
-        </div>
-      </div>
-      <input id="notesSearch" type="search" placeholder="חיפוש בהערות…" class="w-full rounded-lg border px-3 py-2" style="background:var(--input-bg); color:var(--input-text); border-color:var(--border);">
-      <div id="notesFilters" class="hidden mt-2 p-3 border rounded" style="background:var(--card); border-color:var(--border);">
-        <div class="flex flex-wrap gap-3 items-center text-sm">
-          <label class="flex items-center gap-2">
-            <input type="checkbox" id="filterPinned" class="w-4 h-4">
-            <span>מוצמדות בלבד</span>
-          </label>
-          <label class="flex items-center gap-2">
-            <input type="checkbox" id="filterArchived" class="w-4 h-4">
-            <span>בארכיון</span>
-          </label>
-          <label class="flex items-center gap-2">
-            <input type="checkbox" id="filterTrash" class="w-4 h-4">
-            <span>בסל המחזור</span>
-          </label>
-        </div>
-      </div>
+  <!-- Notes Filters (moved out of app bar; toggled by notes actions) -->
+  <div id="notesFilters" class="hidden mt-2 p-3 border rounded max-w-5xl mx-auto" style="background:var(--card); border-color:var(--border);">
+    <div class="flex flex-wrap gap-3 items-center text-sm">
+      <label class="flex items-center gap-2">
+        <input type="checkbox" id="filterPinned" class="w-4 h-4">
+        <span>מוצמדות בלבד</span>
+      </label>
+      <label class="flex items-center gap-2">
+        <input type="checkbox" id="filterArchived" class="w-4 h-4">
+        <span>בארכיון</span>
+      </label>
+      <label class="flex items-center gap-2">
+        <input type="checkbox" id="filterTrash" class="w-4 h-4">
+        <span>בסל המחזור</span>
+      </label>
     </div>
-  </header>
+  </div>
 
   <!-- MAIN: Notes View -->
-  <main id="notesView" class="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-3 py-3 hidden" style="padding-top: 72px; padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 20px);">
+  <main id="notesView" class="w-full max-w-7xl mx-auto py-3 hidden" style="padding: 16px; padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 20px);">
     <!-- Notes Grid/List -->
     <div id="notesContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
     <!-- Notes Categories Bar -->
@@ -257,28 +252,29 @@
     </nav>
   </main>
 
-  <!-- Reminders Header -->
-  <header id="remindersHeader" class="sticky top-0 z-40 border-b mb-3 hidden" style="background:var(--bg); border-color:var(--border);">
-    <div class="max-w-5xl mx-auto p-3">
-      <div class="flex items-center justify-between gap-2 mb-3">
-        <div class="font-semibold text-lg" style="color:var(--text);">תזכורות</div>
-        <div class="flex items-center gap-2">
-          <button id="remindersFilterAll" class="text-sm border rounded px-3 py-1.5 active" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">הכל</button>
-          <button id="remindersFilterActive" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">פעילות</button>
-          <button id="remindersFilterDone" class="text-sm border rounded px-3 py-1.5" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='transparent'">הושלמו</button>
-          <button id="createReminderBtn" class="text-sm border rounded px-3 py-1.5 bg-blue-100" style="color:var(--text); border-color:var(--border);" onmouseover="this.style.background='var(--hover-bg)'" onmouseout="this.style.background='var(--card)'">הוסף תזכורת</button>
-      </div>
-      </div>
-    </div>
-  </header>
+  <!-- Reminders Header removed: actions now live in unified app bar -->
 
   <!-- MAIN: Reminders View -->
-  <main id="remindersView" class="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-3 py-3 hidden" style="padding-bottom: calc(var(--footer-h) + 20px);">
+  <main id="remindersView" class="w-full max-w-7xl mx-auto py-3 hidden" style="padding: 16px; padding-bottom: calc(var(--footer-h) + 20px);">
     <!-- Reminders List -->
     <div id="remindersContainer" class="flex flex-col gap-3">
       <div class="text-sm" style="color:var(--muted);">טוען תזכורות...</div>
     </div>
   </main>
+
+  <!-- Floating Action Buttons (FABs) -->
+  <button id="fabShopping" class="fab hidden" aria-label="הוסף פריט">
+    <span class="fab-icon">+</span>
+  </button>
+  <button id="fabTasks" class="fab hidden" aria-label="הוסף משימה">
+    <span class="fab-icon">+</span>
+  </button>
+  <button id="fabNotes" class="fab hidden" aria-label="הוסף פתק">
+    <span class="fab-icon">+</span>
+  </button>
+  <button id="fabReminders" class="fab hidden" aria-label="הוסף תזכורת">
+    <span class="fab-icon">+</span>
+  </button>
 
   <!-- Category Bars - At root level for proper fixed positioning -->
   <!-- Shopping Categories Bar -->
@@ -373,10 +369,11 @@
       <div class="text-xs mt-2" style="color:var(--muted);">ווידג'ט עם ספירת הפריטים הדחופים יתווסף בעדכון הבא.</div>
     </section>
   </main>
-
-
+  </div>
+  <!-- END MAIN APP CONTENT -->
 
   <!-- --- מודלים (קטגוריה / פריט) נשארו כמו בגרסה היציבה --- -->
+  <!-- MODALS MUST BE OUTSIDE appContent TO RENDER WHEN appContent IS HIDDEN -->
   <!-- Login/Auth Modal -->
   <div id="authModal" class="fixed inset-0 modal" style="display: none; z-index: 99999 !important; position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100% !important; height: 100% !important;">
     <div class="absolute inset-0 bg-black/80" data-close="false"></div>
@@ -1211,8 +1208,21 @@
 
   <!-- Firebase + לוגיקה -->
   <script type="module">
+    // CRITICAL: Block ALL automatic reloads to prevent infinite loops
+    // Set this flag immediately before any code can reload
+    let GLOBAL_RELOAD_BLOCKED = false;
+    
+    // Helper function to safely reload (checks flag first)
+    function safeReload(force) {
+      if (GLOBAL_RELOAD_BLOCKED) {
+        console.warn('[Reload] BLOCKED: All automatic reloads are disabled to prevent infinite loops. User can manually refresh if needed.');
+        return;
+      }
+      window.location.reload(force);
+    }
+    
     import { initAuth, signInWithGoogle, signOutUser, completeOnboarding, createHousehold, joinHouseholdByCode, generateInviteCode, getCurrentUser, getCurrentUserProfile, getCurrentHousehold, waitForAuth, onAuthStateChange, updateUserProfile } from '/js/modules/auth.js';
-    import { initShopping, drawItems, attachItemsListener } from '/js/modules/shopping.js';
+    import { initShopping, drawItems, attachItemsListener, openQuickAdd } from '/js/modules/shopping.js';
     import { initTasks } from '/js/modules/tasks.js';
     import { initNotes } from '/js/modules/notes.js';
     import { initAnalytics } from '/js/modules/analytics.js';
@@ -1263,187 +1273,182 @@
     function showAuthModal() {
       console.log('showAuthModal called');
       const authModal = document.getElementById('authModal');
-      if (authModal) {
-        // Ensure splash screen is fully hidden first
-        const splash = document.getElementById('splashScreen');
-        if (splash) {
+      if (!authModal) {
+        console.error('Auth modal element not found!');
+        // Fallback: show a basic login prompt
+        document.body.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); color: var(--text); padding: 2rem;"><div style="text-align: center;"><h1>GSH</h1><p>טוען...</p></div></div>';
+        return;
+      }
+      
+      // CRITICAL: Move modal to body FIRST - ALWAYS, to ensure it can render
+      // This ensures the modal can render even when appContent is hidden
+      const currentParent = authModal.parentElement;
+      const parentId = currentParent?.id || '';
+      const parentDisplay = currentParent ? window.getComputedStyle(currentParent).display : '';
+      
+      // Always move if inside appContent OR if parent is hidden
+      if (parentId === 'appContent' || parentDisplay === 'none' || !document.body.contains(authModal)) {
+        console.log('Moving authModal to body - parent:', parentId, 'display:', parentDisplay);
+        authModal.remove();
+        document.body.appendChild(authModal);
+      }
+      
+      // CRITICAL: Set body background FIRST before hiding splash
+      document.body.style.background = 'var(--bg)';
+      document.body.style.minHeight = '100vh';
+      document.body.style.width = '100vw';
+      document.documentElement.style.background = 'var(--bg)';
+      document.documentElement.style.minHeight = '100vh';
+      
+      // Hide splash screen FIRST, then immediately show modal
+      const splash = document.getElementById('splashScreen');
+      if (splash) {
+        // Remove splash from DOM flow but keep modal ready
+        splash.style.transition = 'opacity 0.1s';
+        splash.style.opacity = '0';
+        setTimeout(() => {
           splash.classList.add('hidden');
           splash.style.display = 'none';
           splash.style.visibility = 'hidden';
-          splash.style.opacity = '0';
           splash.style.pointerEvents = 'none';
-          splash.style.zIndex = '-1'; // Put it behind everything
-        }
-        
-        // Ensure app content is hidden
-        hideApp();
-        
-        // Move modal to body if it's inside a hidden container
-        if (authModal.parentElement && (authModal.parentElement.classList.contains('hidden') || authModal.parentElement.style.display === 'none')) {
-          console.log('Moving modal to body - parent is hidden');
-          document.body.appendChild(authModal);
-        }
-        
-        // Force show the auth modal with aggressive CSS - use setAttribute to override everything
-        authModal.classList.add('show');
-        authModal.setAttribute('style', `
-          display: block !important;
-          visibility: visible !important;
-          opacity: 1 !important;
-          pointer-events: auto !important;
-          z-index: 99999 !important;
-          position: fixed !important;
-          top: 0 !important;
-          left: 0 !important;
-          right: 0 !important;
-          bottom: 0 !important;
-          width: 100vw !important;
-          height: 100vh !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          background: transparent !important;
-        `);
-        
-        // Force body and html to allow modal
-        document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
-        
-        // Force show modal content children
-        const modalChildren = authModal.querySelectorAll('*');
-        modalChildren.forEach(child => {
-          if (child.style) {
-            child.style.visibility = 'visible';
-            child.style.opacity = '1';
-          }
-        });
-        
-        // Force a repaint/redraw
-        authModal.offsetHeight; // Trigger reflow
-        
-        // Log computed styles for debugging
-        const computed = window.getComputedStyle(authModal);
-        console.log('Auth modal computed styles:', {
-          display: computed.display,
-          visibility: computed.visibility,
-          zIndex: computed.zIndex,
-          opacity: computed.opacity,
-          position: computed.position,
-          width: computed.width,
-          height: computed.height
-        });
-        
-        // Verify modal content is visible - use more specific selectors
-        const modalOverlay = authModal.querySelector('.bg-black\\/80') || authModal.children[0];
-        const modalContentWrapper = authModal.querySelector('.flex.items-center') || (authModal.children.length > 1 ? authModal.children[1] : null);
-        const modalCard = authModal.querySelector('.rounded-xl') || (modalContentWrapper ? modalContentWrapper.children[0] : null);
-        
-        console.log('Modal structure check:', {
-          overlay: modalOverlay ? 'found' : 'not found',
-          contentWrapper: modalContentWrapper ? 'found' : 'not found',
-          card: modalCard ? 'found' : 'not found',
-          totalChildren: authModal.children.length
-        });
-        
-        // Force overlay to be visible
-        if (modalOverlay) {
-          modalOverlay.style.cssText = 'position: absolute !important; inset: 0 !important; background: rgba(0, 0, 0, 0.8) !important; z-index: 1 !important; display: block !important; visibility: visible !important;';
-          console.log('Overlay styles applied');
-        }
-        
-        // Force content wrapper to be visible
-        if (modalContentWrapper) {
-          modalContentWrapper.style.cssText = 'position: absolute !important; inset: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 1rem !important; z-index: 2 !important; visibility: visible !important; opacity: 1 !important;';
-          console.log('Content wrapper styles applied');
-        }
-        
-        // Force card to be visible with explicit background color
-        if (modalCard) {
-          // Get computed background color for the card
-          const cardBg = getComputedStyle(document.body).getPropertyValue('--card') || '#ffffff';
-          modalCard.style.cssText = 'width: 100% !important; max-width: 28rem !important; border-radius: 0.75rem !important; overflow: hidden !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important; background: ' + cardBg + ' !important; color: var(--text) !important; z-index: 3 !important; visibility: visible !important; opacity: 1 !important; display: block !important; position: relative !important;';
-          console.log('Modal card styles applied with background:', cardBg);
-          const cardComputed = window.getComputedStyle(modalCard);
-          console.log('Modal card computed:', {
-            display: cardComputed.display,
-            visibility: cardComputed.visibility,
-            backgroundColor: cardComputed.backgroundColor,
-            width: cardComputed.width,
-            height: cardComputed.height
-          });
-        }
-        
-        // Double check modal is actually visible - if not, alert
-        setTimeout(() => {
-          const finalComputed = window.getComputedStyle(authModal);
-          const rect = authModal.getBoundingClientRect();
-          console.log('Modal position and size:', {
-            width: rect.width,
-            height: rect.height,
-            top: rect.top,
-            left: rect.left,
-            visible: rect.width > 0 && rect.height > 0
-          });
-          
-          if (finalComputed.display === 'none' || finalComputed.visibility === 'hidden') {
-            console.error('MODAL STILL HIDDEN AFTER ALL ATTEMPTS!', finalComputed);
-            // Last resort - remove modal class entirely and just show it
-            authModal.className = 'fixed inset-0';
-            authModal.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; z-index: 99999 !important; position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100% !important; height: 100% !important;';
-          }
+          splash.style.zIndex = '-1';
         }, 100);
-      } else {
-        console.error('Auth modal element not found!');
       }
+      
+      // Ensure app content is hidden
+      hideApp();
+      
+      // Force show the auth modal IMMEDIATELY - no delays
+      authModal.classList.remove('hidden');
+      authModal.classList.add('show');
+      
+      // Use style property instead of setAttribute for immediate effect
+      authModal.style.display = 'block';
+      authModal.style.visibility = 'visible';
+      authModal.style.opacity = '1';
+      authModal.style.pointerEvents = 'auto';
+      authModal.style.zIndex = '99999';
+      authModal.style.position = 'fixed';
+      authModal.style.top = '0';
+      authModal.style.left = '0';
+      authModal.style.right = '0';
+      authModal.style.bottom = '0';
+      authModal.style.width = '100vw';
+      authModal.style.height = '100vh';
+      authModal.style.margin = '0';
+      authModal.style.padding = '0';
+      authModal.style.background = 'transparent';
+      
+      // Force body and html settings
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      
+      // Ensure modal children are visible
+      const overlay = authModal.querySelector('.bg-black\\/80') || authModal.children[0];
+      const contentWrapper = authModal.querySelector('.flex.items-center') || authModal.children[1];
+      const card = authModal.querySelector('.rounded-xl') || (contentWrapper ? contentWrapper.children[0] : null);
+      
+      if (overlay) {
+        overlay.style.display = 'block';
+        overlay.style.visibility = 'visible';
+        overlay.style.opacity = '1';
+        overlay.style.position = 'absolute';
+        overlay.style.inset = '0';
+        overlay.style.background = 'rgba(0, 0, 0, 0.8)';
+        overlay.style.zIndex = '1';
+      }
+      
+      if (contentWrapper) {
+        contentWrapper.style.display = 'flex';
+        contentWrapper.style.visibility = 'visible';
+        contentWrapper.style.opacity = '1';
+        contentWrapper.style.position = 'absolute';
+        contentWrapper.style.inset = '0';
+        contentWrapper.style.alignItems = 'center';
+        contentWrapper.style.justifyContent = 'center';
+        contentWrapper.style.padding = '1rem';
+        contentWrapper.style.zIndex = '2';
+      }
+      
+      if (card) {
+        const cardBg = getComputedStyle(document.documentElement).getPropertyValue('--card').trim() || '#ffffff';
+        card.style.display = 'block';
+        card.style.visibility = 'visible';
+        card.style.opacity = '1';
+        card.style.background = cardBg;
+        card.style.color = 'var(--text)';
+        card.style.zIndex = '3';
+        card.style.position = 'relative';
+      }
+      
+      // Verify visibility after a moment
+      requestAnimationFrame(() => {
+        const rect = authModal.getBoundingClientRect();
+        const computed = window.getComputedStyle(authModal);
+        if (rect.width === 0 || rect.height === 0 || computed.display === 'none') {
+          console.warn('Modal not visible, forcing display');
+          authModal.style.cssText += 'display: block !important; visibility: visible !important; opacity: 1 !important;';
+        }
+      });
     }
 
     function hideAuthModal() {
       const authModal = document.getElementById('authModal');
       if (authModal) {
         authModal.classList.remove('show');
+        authModal.classList.add('hidden');
         authModal.style.display = 'none';
+        authModal.style.visibility = 'hidden';
       }
     }
     
     function showApp() {
-      // Show the main app content
-      if (appContent) {
-        appContent.classList.remove('hidden');
+      // Ensure body has proper background
+      document.body.style.background = 'var(--bg)';
+      document.body.style.minHeight = '100vh';
+      document.documentElement.style.background = 'var(--bg)';
+      
+      // Hide splash screen
+      const splash = document.getElementById('splashScreen');
+      if (splash) {
+        splash.classList.add('hidden');
+        splash.style.display = 'none';
+        splash.style.visibility = 'hidden';
+        splash.style.opacity = '0';
+        splash.style.pointerEvents = 'none';
       }
+      
       // Ensure all modals are hidden
       hideAuthModal();
       hideOnboardingModal();
       hideHouseholdModal();
+      
+      // Show the main app content
+      if (appContent) {
+        appContent.classList.remove('hidden');
+        appContent.style.display = 'block';
+        appContent.style.visibility = 'visible';
+        appContent.style.opacity = '1';
+      }
+      
+      // Reset body overflow
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
     
     function hideApp() {
       // Hide the main app content
       if (appContent) {
         appContent.classList.add('hidden');
+        appContent.style.display = 'none';
       }
+      // Ensure body still has background even when app is hidden
+      document.body.style.background = 'var(--bg)';
+      document.body.style.minHeight = '100vh';
+      document.documentElement.style.background = 'var(--bg)';
     }
     
-    // Global function to dismiss splash screen (can be called from onclick/touch)
-    window.dismissSplashScreen = function() {
-      console.log('Manual splash screen dismissal triggered');
-      const splashScreen = document.getElementById('splashScreen');
-      if (splashScreen && !splashScreen.classList.contains('hidden')) {
-        splashScreen.classList.add('hidden');
-        splashScreen.style.display = 'none';
-        waitingForAuth = false;
-        
-        // Check if we have a user
-        const user = getCurrentUser();
-        const profile = getCurrentUserProfile();
-        const household = getCurrentHousehold();
-        
-        if (user && profile && household) {
-          showApp();
-        } else {
-          hideApp();
-          showAuthModal();
-        }
-      }
-    };
+    // Splash screen is now controlled ONLY by auth state (no manual dismiss)
 
     // Don't hide auth modal initially - it will be shown when needed
     // hideAuthModal();
@@ -1451,6 +1456,9 @@
     // Track if we're still waiting for initial auth check
     // Set this BEFORE initAuth so the callback knows we're still initializing
     let waitingForAuth = true;
+    let splashHandled = false; // Flag to prevent multiple splash handlers
+    let initializationComplete = false; // Flag to prevent multiple initializations
+    let reloadPrevented = false; // Flag to prevent ALL reloads after initialization
     
     // Initialize authentication
     initAuth({
@@ -1474,19 +1482,32 @@
         updateAuthUI();
       },
       onHouseholdChange: (household) => {
+        // Prevent multiple calls from causing issues - check if same household and already initialized
+        if (initializationComplete && currentHousehold?.id === household?.id) {
+          // Same household, already initialized - just update UI, don't reload
+          currentHousehold = household;
+          updateAuthUI();
+          setTimeout(() => updateInviteCodeButton(), 100);
+          return;
+        }
+        
         currentHousehold = household;
         if (household) {
           console.log('Household loaded:', household.name);
           hideHouseholdModal();
           // If user is authenticated, onboarded, and has household - show app now
           if (currentUserProfile && currentUserProfile.onboardingComplete && household) {
-            // Force hide splash screen immediately
-            if (splashScreen) {
-              splashScreen.classList.add('hidden');
-              splashScreen.style.display = 'none';
+            // Only show app if not already shown (prevent loops)
+            if (!initializationComplete) {
+              // Force hide splash screen immediately
+              splashHandled = true; // Mark as handled to prevent loops
+              if (splashScreen) {
+                splashScreen.classList.add('hidden');
+                splashScreen.style.display = 'none';
+              }
+              waitingForAuth = false; // Mark as no longer waiting
+              showApp();
             }
-            waitingForAuth = false; // Mark as no longer waiting
-            showApp();
           }
           // Start app initialization if not already started
           if (!authInitialized) {
@@ -1495,8 +1516,8 @@
           }
         } else {
           console.log('No household found');
-          // Show household creation modal if user is authenticated
-          if (currentUserProfile && currentUserProfile.onboardingComplete) {
+          // Only show household modal if app is not yet initialized
+          if (!initializationComplete && currentUserProfile && currentUserProfile.onboardingComplete) {
             showHouseholdModal();
           }
         }
@@ -1507,6 +1528,9 @@
 
     // Wait for auth state to be ready
     waitForAuth().then(async ({ user, profile, household }) => {
+      // Prevent other handlers from running
+      if (splashHandled) return;
+      
       // Keep splash screen visible until we determine what to show
       
       if (user && profile) {
@@ -1517,22 +1541,46 @@
         if (!profile.onboardingComplete) {
           // Show onboarding - keep app hidden during onboarding
           hideApp(); // Ensure app is hidden
+          
+          // Ensure body has background during transition
+          document.body.style.background = 'var(--bg)';
+          document.body.style.minHeight = '100vh';
+          
           if (splashScreen) {
             splashScreen.classList.add('hidden');
             splashScreen.style.display = 'none';
+            splashScreen.style.visibility = 'hidden';
+            splashScreen.style.opacity = '0';
           }
-          showOnboardingModal(profile);
+          
+          splashHandled = true; // Mark as handled to prevent loops
+          // Small delay to ensure splash is fully hidden before showing modal
+          setTimeout(() => {
+            showOnboardingModal(profile);
+          }, 50);
           return;
         }
         
         if (!household) {
           // Show household creation - keep app hidden
+          splashHandled = true; // Mark as handled to prevent loops
           hideApp(); // Ensure app is hidden
+          
+          // Ensure body has background during transition
+          document.body.style.background = 'var(--bg)';
+          document.body.style.minHeight = '100vh';
+          
           if (splashScreen) {
             splashScreen.classList.add('hidden');
             splashScreen.style.display = 'none';
+            splashScreen.style.visibility = 'hidden';
+            splashScreen.style.opacity = '0';
           }
-          showHouseholdModal();
+          
+          // Small delay to ensure splash is fully hidden before showing modal
+          setTimeout(() => {
+            showHouseholdModal();
+          }, 50);
           return;
         }
         
@@ -1543,6 +1591,7 @@
         hideHouseholdModal();
         
         // Hide splash and show app
+        splashHandled = true; // Mark as handled to prevent loops
         if (splashScreen) {
           splashScreen.classList.add('hidden');
           splashScreen.style.display = 'none'; // Force hide with inline style
@@ -1556,38 +1605,117 @@
       } else {
         // No user - show login modal, keep app hidden
         console.log('No user found - showing auth modal');
+        splashHandled = true; // Mark as handled to prevent loops
         waitingForAuth = false;
         hideApp(); // Ensure app is hidden
+        
+        // Ensure body has background during transition
+        document.body.style.background = 'var(--bg)';
+        document.body.style.minHeight = '100vh';
+        
+        // Hide splash screen first, then show modal immediately after
         if (splashScreen) {
           splashScreen.classList.add('hidden');
           splashScreen.style.display = 'none';
+          splashScreen.style.visibility = 'hidden';
+          splashScreen.style.opacity = '0';
         }
-        // Ensure auth modal is shown
+        
+        // Ensure body background is set BEFORE showing modal
+        document.body.style.background = 'var(--bg)';
+        document.body.style.minHeight = '100vh';
+        document.documentElement.style.background = 'var(--bg)';
+        
+        // Ensure body background is ALWAYS visible - do this first
+        document.body.style.setProperty('background', 'var(--bg)', 'important');
+        document.body.style.setProperty('min-height', '100vh', 'important');
+        document.body.style.setProperty('width', '100vw', 'important');
+        document.documentElement.style.setProperty('background', 'var(--bg)', 'important');
+        document.documentElement.style.setProperty('min-height', '100vh', 'important');
+        
+        // Show modal IMMEDIATELY while splash is still visible (modal behind splash)
+        showAuthModal();
+        
+        // Then hide splash with a very short delay so modal is ready
+        if (splashScreen) {
+          // Use requestAnimationFrame for smooth transition
+          requestAnimationFrame(() => {
+            splashScreen.style.transition = 'opacity 0.15s ease-out';
+            splashScreen.style.opacity = '0';
+            setTimeout(() => {
+              splashScreen.classList.add('hidden');
+              splashScreen.style.display = 'none';
+              splashScreen.style.visibility = 'hidden';
+              splashScreen.style.pointerEvents = 'none';
+              splashScreen.style.zIndex = '-1';
+              // Ensure modal is still visible after splash hides
+              showAuthModal();
+            }, 150);
+          });
+        }
+        
+        // Fallback attempts - ensure modal is always visible
         setTimeout(() => {
-          showAuthModal();
-        }, 100);
+          const modal = document.getElementById('authModal');
+          if (modal) {
+            const computed = window.getComputedStyle(modal);
+            const rect = modal.getBoundingClientRect();
+            if (computed.display === 'none' || computed.visibility === 'hidden' || rect.width === 0) {
+              console.warn('Modal not visible, forcing display');
+              showAuthModal();
+            }
+          }
+        }, 250);
       }
       waitingForAuth = false; // Mark that we've completed the initial auth check
+      initializationComplete = true;
+        GLOBAL_RELOAD_BLOCKED = true; // Mark initialization as complete
+      splashHandled = true; // Mark as handled
+      reloadPrevented = true; // Prevent ALL reloads after initialization
+      GLOBAL_RELOAD_BLOCKED = true; // Block ALL reloads globally
     }).catch(err => {
       console.error('Auth initialization error:', err);
       waitingForAuth = false;
+      initializationComplete = true;
+        GLOBAL_RELOAD_BLOCKED = true; // Mark initialization as complete even on error
+      splashHandled = true; // Mark as handled even on error
+      reloadPrevented = true; // Prevent ALL reloads after initialization
+      GLOBAL_RELOAD_BLOCKED = true; // Block ALL reloads globally
+      
+      // Ensure body has background during transition
+      document.body.style.background = 'var(--bg)';
+      document.body.style.minHeight = '100vh';
+      
       // Hide splash on error
       if (splashScreen) {
         splashScreen.classList.add('hidden');
         splashScreen.style.display = 'none';
+        splashScreen.style.visibility = 'hidden';
+        splashScreen.style.opacity = '0';
       }
       hideApp(); // Ensure app is hidden
-      // On error, show auth modal
+      
+      // On error, show auth modal immediately
+      showAuthModal();
+      
+      // Also try again after a short delay as fallback
       setTimeout(() => {
         showAuthModal();
-      }, 500);
+      }, 100);
     });
     
     // Absolute maximum timeout: ALWAYS show auth modal after 2 seconds if splash is still visible
     setTimeout(() => {
+      if (splashHandled || initializationComplete) {
+        console.log('Timeout skipped - already handled or initialized');
+        return; // Don't run if already handled
+      }
       const splash = document.getElementById('splashScreen');
       if (splash && !splash.classList.contains('hidden')) {
         console.warn('ABSOLUTE TIMEOUT (2s): Forcing auth modal display');
+        splashHandled = true; // Mark as handled FIRST to prevent other handlers
+        initializationComplete = true;
+        GLOBAL_RELOAD_BLOCKED = true; // Mark as complete
         // Force hide splash immediately using multiple methods
         splash.classList.add('hidden');
         splash.style.display = 'none';
@@ -1600,7 +1728,6 @@
         const user = getCurrentUser();
         const profile = getCurrentUserProfile();
         const household = getCurrentHousehold();
-        
         if (user && profile && household) {
           // User exists - show app
           console.log('Absolute timeout: User exists, showing app');
@@ -1626,6 +1753,10 @@
     
     // Immediate check: Show auth modal after 500ms if no user detected
     setTimeout(() => {
+      if (splashHandled || initializationComplete) {
+        console.log('Early check (500ms) skipped - already handled or initialized');
+        return; // Don't run if already handled
+      }
       const splash = document.getElementById('splashScreen');
       if (splash && !splash.classList.contains('hidden')) {
         const user = getCurrentUser();
@@ -1635,6 +1766,9 @@
         if (!user) {
           // No user after 500ms - show auth modal immediately
           console.log('Early check (500ms): No user detected, showing auth modal');
+          splashHandled = true; // Mark as handled FIRST
+          initializationComplete = true;
+        GLOBAL_RELOAD_BLOCKED = true; // Mark as complete
           splash.classList.add('hidden');
           splash.style.display = 'none';
           hideApp();
@@ -1643,6 +1777,9 @@
         } else if (user && profile && household) {
           // User exists - show app immediately
           console.log('Early check (500ms): User exists, showing app');
+          splashHandled = true; // Mark as handled FIRST
+          initializationComplete = true;
+        GLOBAL_RELOAD_BLOCKED = true; // Mark as complete
           splash.classList.add('hidden');
           splash.style.display = 'none';
           showApp();
@@ -1653,6 +1790,25 @@
     function showOnboardingModal(profile) {
       const modal = document.getElementById('onboardingModal');
       if (!modal) return;
+      
+      // Ensure splash is fully hidden
+      const splash = document.getElementById('splashScreen');
+      if (splash) {
+        splash.classList.add('hidden');
+        splash.style.display = 'none';
+        splash.style.visibility = 'hidden';
+        splash.style.opacity = '0';
+      }
+      
+      // Ensure body has background
+      document.body.style.background = 'var(--bg)';
+      document.body.style.minHeight = '100vh';
+      document.documentElement.style.background = 'var(--bg)';
+      
+      // Hide other modals
+      hideAuthModal();
+      hideHouseholdModal();
+      hideApp();
       
       // Pre-fill with Google profile data
       if (profile) {
@@ -1665,7 +1821,12 @@
         }
       }
       
+      // Force show modal
       modal.classList.add('show');
+      modal.style.display = 'block';
+      modal.style.visibility = 'visible';
+      modal.style.opacity = '1';
+      modal.style.zIndex = '100';
       hideAuthModal();
     }
 
@@ -1674,9 +1835,34 @@
     }
 
     function showHouseholdModal() {
-      document.getElementById('householdModal')?.classList.add('show');
+      const modal = document.getElementById('householdModal');
+      if (!modal) return;
+      
+      // Ensure splash is fully hidden
+      const splash = document.getElementById('splashScreen');
+      if (splash) {
+        splash.classList.add('hidden');
+        splash.style.display = 'none';
+        splash.style.visibility = 'hidden';
+        splash.style.opacity = '0';
+      }
+      
+      // Ensure body has background
+      document.body.style.background = 'var(--bg)';
+      document.body.style.minHeight = '100vh';
+      document.documentElement.style.background = 'var(--bg)';
+      
+      // Hide other modals
       hideAuthModal();
       hideOnboardingModal();
+      hideApp();
+      
+      // Force show modal
+      modal.classList.add('show');
+      modal.style.display = 'block';
+      modal.style.visibility = 'visible';
+      modal.style.opacity = '1';
+      modal.style.zIndex = '100';
     }
 
     function hideHouseholdModal() {
@@ -2280,6 +2466,172 @@
     async function startApp() {
       console.log('Starting app initialization...');
 
+    /* ---------------- VERSION CHECKING & AUTO-UPDATE ---------------- */
+    const APP_VERSION = '0.9';
+    
+    // Clear all caches and unregister old service workers (aggressive cleanup)
+    async function clearAllCaches() {
+      if ('caches' in window) {
+        try {
+          const cacheNames = await caches.keys();
+          console.log('[Update] Clearing all caches:', cacheNames);
+          await Promise.all(cacheNames.map(name => {
+            console.log('[Update] Deleting cache:', name);
+            return caches.delete(name);
+          }));
+        } catch (err) {
+          console.error('[Update] Error clearing caches:', err);
+        }
+      }
+    }
+    
+    // Unregister all service workers
+    async function unregisterAllServiceWorkers() {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          console.log('[Update] Found', registrations.length, 'service worker registrations');
+          await Promise.all(registrations.map(reg => {
+            console.log('[Update] Unregistering service worker:', reg.scope);
+            return reg.unregister();
+          }));
+        } catch (err) {
+          console.error('[Update] Error unregistering service workers:', err);
+        }
+      }
+    }
+    
+    // Force update by clearing everything and reloading
+    async function forceUpdate() {
+      // COMPLETELY DISABLED: Don't auto-reload - causes infinite loops
+      // Only allow manual reloads via user action
+      if (reloadPrevented || initializationComplete) {
+        console.log('[Update] Skipping force update - app is already running (prevents infinite loops)');
+        return;
+      }
+      console.log('[Update] Force update requested but disabled to prevent loops');
+      // DO NOT reload automatically - let user manually refresh
+      // await clearAllCaches();
+      // await unregisterAllServiceWorkers();
+      // window.location.reload(true); // DISABLED
+    }
+    
+    // Check for app updates and force refresh if needed
+    async function checkForUpdates() {
+      // CRITICAL: Don't set up any update checks if app is already running
+      if (GLOBAL_RELOAD_BLOCKED || initializationComplete) {
+        console.log('[Update] Skipping update check - app is already running (prevents reload loops)');
+        return;
+      }
+      
+      if ('serviceWorker' in navigator) {
+        try {
+          // First, check if we need to force update (detect old version)
+          // DISABLED: Don't auto-update after app is running to prevent loops
+          if (!initializationComplete && !reloadPrevented) {
+            const storedVersion = localStorage.getItem('gsh-app-version');
+            if (storedVersion && storedVersion !== APP_VERSION) {
+              console.log('[Update] Version mismatch detected:', storedVersion, '->', APP_VERSION);
+              localStorage.setItem('gsh-app-version', APP_VERSION);
+              // DO NOT force update - causes infinite loops
+              // await forceUpdate();
+              // return;
+            }
+          }
+          
+          // Store current version
+          localStorage.setItem('gsh-app-version', APP_VERSION);
+          
+          // Register service worker with update check (force fresh fetch)
+          const registration = await navigator.serviceWorker.register('/sw.js?v=' + APP_VERSION + '&ts=' + Date.now(), {
+            scope: '/',
+            updateViaCache: 'none' // Never use cached service worker
+          });
+          
+          // Listen for service worker updates
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed') {
+                  console.log('[Update] New service worker installed');
+                  // DISABLED: Don't reload automatically - causes infinite loops
+                  // If there's a controller, it means this is an update
+                  if (navigator.serviceWorker.controller) {
+                    console.log('[Update] New service worker available - will activate on next page load (no auto-reload)');
+                    // DO NOT reload - let user manually refresh if needed
+                  }
+                }
+              });
+            }
+          });
+          
+          // Check for updates immediately
+          try {
+            await registration.update();
+          } catch (err) {
+            console.error('[Update] Error checking for updates:', err);
+          }
+          
+          // Check for updates periodically (every 30 seconds on mobile)
+          setInterval(async () => {
+            try {
+              await registration.update();
+            } catch (err) {
+              console.error('[Update] Error checking for updates:', err);
+            }
+          }, 30000); // Check every 30 seconds
+          
+          // Listen for messages from service worker
+          navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'SW_UPDATED') {
+              console.log('[Update] Service worker updated to version', event.data.version);
+              // DISABLED: Don't reload automatically - causes infinite loops
+              // Only allow reload if explicitly forced AND during initialization
+              // COMPLETELY DISABLED: Never auto-reload to prevent infinite loops
+              console.log('[Update] Service worker updated - skipping auto-reload to prevent loops (user can manually refresh)');
+              // DO NOT reload - let user manually refresh if needed
+            }
+          });
+          
+          // Also check controller change (happens when new SW takes over)
+          // DISABLED: Don't reload automatically - causes infinite loops
+          // User can manually refresh if needed
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('[Update] Service worker controller changed - skipping auto-reload to prevent loops');
+            // DO NOT reload - let user manually refresh if needed
+          });
+        } catch (err) {
+          console.error('[Update] Error in update check:', err);
+        }
+      }
+      
+      // Force fetch index.html on startup to check for updates (bypass cache)
+      try {
+        const response = await fetch('/index.html?v=' + Date.now(), {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
+      } catch (err) {
+        console.warn('[Update] Could not check for updates:', err);
+      }
+    }
+    
+    // Check for updates on startup
+    // Only check for updates during initial load, not after app is running
+    // This prevents infinite reload loops
+    if (!initializationComplete && !reloadPrevented) {
+      checkForUpdates();
+    } else {
+      console.log('[Update] Skipping update check - app is already running');
+    }
+    
+    // Add manual refresh function (can be called from console)
+    window.forceAppUpdate = forceUpdate;
+
     /* ---------------- PUSH NOTIFICATIONS ---------------- */
     // Initialize notifications on app load (householdRef is available here)
     if ('serviceWorker' in navigator) {
@@ -2731,8 +3083,7 @@
     initTheme();
     
     /* ---------------- NAVIGATION ---------------- */
-    const shoppingHeader = document.getElementById('shoppingHeader');
-    const tasksHeader = document.getElementById('tasksHeader');
+    const appBarTitle = document.getElementById('appBarTitle');
     
     function switchView(view){
       currentView = view;
@@ -2799,14 +3150,6 @@
       navNotes?.classList.remove('active');
       navReminders?.classList.remove('active');
       
-      // Hide all headers
-      if(shoppingHeader) shoppingHeader.classList.add('hidden');
-      if(tasksHeader) tasksHeader.classList.add('hidden');
-      const notesHeader = document.getElementById('notesHeader');
-      const remindersHeader = document.getElementById('remindersHeader');
-      if(notesHeader) notesHeader.classList.add('hidden');
-      if(remindersHeader) remindersHeader.classList.add('hidden');
-      
       if(view === 'shopping'){
         // Hide analytics if showing when switching to shopping (if it was shown from elsewhere)
         if(showingAnalytics && currentView !== 'shopping'){
@@ -2818,7 +3161,7 @@
         navTasks?.classList.remove('active');
         navNotes?.classList.remove('active');
         navReminders?.classList.remove('active');
-        if(shoppingHeader) shoppingHeader.classList.remove('hidden');
+        if (appBarTitle) appBarTitle.textContent = 'רשימת קניות';
         // Shopping category bar is inside mainView, so it will be visible when mainView is visible
         const shoppingNavEl = document.getElementById('shoppingCategoriesNav');
         if(shoppingNavEl) {
@@ -2846,7 +3189,7 @@
         navTasks?.classList.add('active');
         navNotes?.classList.remove('active');
         navReminders?.classList.remove('active');
-        if(tasksHeader) tasksHeader.classList.remove('hidden');
+        if (appBarTitle) appBarTitle.textContent = 'משימות';
         // Tasks category bar is inside tasksView, so it will be visible when tasksView is visible
         const tasksNavEl = document.getElementById('tasksCategoriesNav');
         if(tasksNavEl) {
@@ -2879,7 +3222,7 @@
         navTasks?.classList.remove('active');
         navNotes?.classList.add('active');
         navReminders?.classList.remove('active');
-        if(notesHeader) notesHeader.classList.remove('hidden');
+        if (appBarTitle) appBarTitle.textContent = 'פתקים';
       } else if(view === 'reminders'){
         // Hide analytics when switching away from shopping
         if(showingAnalytics){
@@ -2891,13 +3234,35 @@
         navTasks?.classList.remove('active');
         navNotes?.classList.remove('active');
         navReminders?.classList.add('active');
-        if(remindersHeader) remindersHeader.classList.remove('hidden');
+        if (appBarTitle) appBarTitle.textContent = 'תזכורות';
       }
 
       // Call each module's handleViewChange to ensure proper category hiding/showing
       notesModule?.handleViewChange(view);
       remindersModule?.handleViewChange(view);
       tasksModule?.handleViewChange(view);
+      
+      // Show/hide FABs based on current view
+      const fabShopping = document.getElementById('fabShopping');
+      const fabTasks = document.getElementById('fabTasks');
+      const fabNotes = document.getElementById('fabNotes');
+      const fabReminders = document.getElementById('fabReminders');
+      
+      if (fabShopping) fabShopping.classList.toggle('hidden', view !== 'shopping');
+      if (fabTasks) fabTasks.classList.toggle('hidden', view !== 'tasks');
+      if (fabNotes) fabNotes.classList.toggle('hidden', view !== 'notes');
+      if (fabReminders) fabReminders.classList.toggle('hidden', view !== 'reminders');
+
+      // Show/hide app bar actions based on current view
+      const actionsShopping = document.getElementById('appBarActionsShopping');
+      const actionsTasks = document.getElementById('appBarActionsTasks');
+      const actionsNotes = document.getElementById('appBarActionsNotes');
+      const actionsReminders = document.getElementById('appBarActionsReminders');
+
+      if (actionsShopping) actionsShopping.classList.toggle('hidden', view !== 'shopping');
+      if (actionsTasks) actionsTasks.classList.toggle('hidden', view !== 'tasks');
+      if (actionsNotes) actionsNotes.classList.toggle('hidden', view !== 'notes');
+      if (actionsReminders) actionsReminders.classList.toggle('hidden', view !== 'reminders');
     }
     navShopping?.addEventListener('click', ()=> switchView('shopping'));
     navTasks?.addEventListener('click', ()=> switchView('tasks'));
@@ -3057,7 +3422,7 @@
       shoppingCategoriesList.appendChild(addBtn);
 
       const cur = CATEGORIES.find(c=>c.id===selectedCategory);
-      catTitle.textContent = cur ? cur.label : 'קטגוריות';
+      if (catTitle) catTitle.textContent = cur ? cur.label : 'קטגוריות';
       drawItems();
       populateImportCategoryOptions();
       populateTemplateCategoryOptions();
@@ -3087,7 +3452,7 @@
       selectedCategory = catId;
       try{ localStorage.setItem(SHOPPING_CATEGORY_KEY, catId || ''); }catch(_){}
       const cur = CATEGORIES.find(c=>c.id===catId);
-      catTitle.textContent = cur ? cur.label : 'קטגוריות';
+      if (catTitle) catTitle.textContent = cur ? cur.label : 'קטגוריות';
       attachItemsListener(catId);
       renderCategories();
     }
@@ -3428,14 +3793,39 @@
 
     /* ---------------- IMPORT MODAL ---------------- */
     importBtn?.addEventListener('click', openImportModal);
-    // Add button for shopping items
-    document.getElementById('addShoppingItemBtn')?.addEventListener('click', ()=>{
+    // Add button for shopping items (hidden, FAB is used instead)
+    const handleAddShoppingItem = () => {
       if(selectedCategory) {
         openQuickAdd(selectedCategory);
       } else if(CATEGORIES.length > 0) {
         openQuickAdd(CATEGORIES[0].id);
       } else {
         toast('אנא בחר קטגוריה תחילה');
+      }
+    };
+    document.getElementById('addShoppingItemBtn')?.addEventListener('click', handleAddShoppingItem);
+    
+    // FAB for shopping items
+    document.getElementById('fabShopping')?.addEventListener('click', handleAddShoppingItem);
+    
+    // FAB for tasks - wire to openTaskEditor with null (create mode)
+    document.getElementById('fabTasks')?.addEventListener('click', () => {
+      if (typeof window !== 'undefined' && window.openTaskEditor) {
+        window.openTaskEditor(null);
+      }
+    });
+    
+    // FAB for notes - wire to openNoteEditor with create mode
+    document.getElementById('fabNotes')?.addEventListener('click', () => {
+      if (typeof window !== 'undefined' && window.openNoteEditor) {
+        window.openNoteEditor('create');
+      }
+    });
+    
+    // FAB for reminders - wire to openReminderEditor with create mode
+    document.getElementById('fabReminders')?.addEventListener('click', () => {
+      if (typeof window !== 'undefined' && window.openReminderEditor) {
+        window.openReminderEditor('create');
       }
     });
     document.querySelectorAll('#importModal [data-close]').forEach(el=> el.addEventListener('click',()=> closeImportModal()));
@@ -3785,7 +4175,7 @@
     
     function renderTaskCategories(){
       const cur = TASK_CATEGORIES.find(c=>c.id===selectedTaskCategory);
-      taskCatTitle.textContent = cur ? cur.label : 'קטגוריות משימות';
+      if (taskCatTitle) taskCatTitle.textContent = cur ? cur.label : 'קטגוריות משימות';
       renderTasks();
       if(currentTasksTab === 'gantt'){
       renderGantt();
@@ -3862,7 +4252,7 @@
       selectedTaskCategory = catId;
       try{ localStorage.setItem(TASK_CATEGORY_KEY, catId || ''); }catch(_){}
       const cur = TASK_CATEGORIES.find(c=>c.id===catId);
-      taskCatTitle.textContent = cur ? cur.label : 'קטגוריות משימות';
+      if (taskCatTitle) taskCatTitle.textContent = cur ? cur.label : 'קטגוריות משימות';
       attachTasksListener(catId);
       renderTaskCategories();
       renderTaskCategoriesBottomBar();
@@ -4608,6 +4998,9 @@
       }
     });
 
+    // CRITICAL: Ensure app content is visible after initialization
+    console.log('App initialization complete - showing app content');
+    showApp();
 
     } // End of startApp() function
 

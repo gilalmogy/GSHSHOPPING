@@ -26,10 +26,23 @@ body.dark-mode {
 * { -webkit-tap-highlight-color: transparent; }
 html, body { 
   margin:0; 
-  background:var(--bg); 
+  background:var(--bg) !important; 
   font-family: system-ui, Arial, sans-serif; 
   color:var(--text); 
   transition: background .3s, color .3s; 
+  min-height: 100vh !important;
+  width: 100vw !important;
+}
+
+/* Ensure body always has background color - prevent white screen */
+body {
+  background: var(--bg) !important;
+  min-height: 100vh !important;
+}
+
+/* Override any inline styles that might hide body background */
+body[style*="background"] {
+  background: var(--bg) !important;
 }
 body { padding-bottom: calc(var(--footer-h) + env(safe-area-inset-bottom, 0px)); }
 

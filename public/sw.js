@@ -1,57 +1,129 @@
-// sw.js - קאשינג בסיסי ל־offline + Push Notifications
-const CACHE_NAME = 'gsh-cache-v2';
-const ASSETS = [
-  '/', '/index.html',
+// sw.js - Enhanced caching with versioning and auto-update
+// Update this version number whenever you deploy a new version
+const CACHE_VERSION = '6'; // Incremented to force update
+const CACHE_NAME = `gsh-cache-v${CACHE_VERSION}`;
+const APP_VERSION = '1.0.2'; // Should match package.json version
+
+// Assets that should be cached persistently (images, icons)
+const PERSISTENT_ASSETS = [
   '/GSH.png', '/GSH-192.png', '/GSH-512.png',
-  '/buy.png', '/cat.png', '/add.png'
-  // Note: External CDN resources (Tailwind, Chart.js) are loaded via script tags
-  // and don't need to be cached by service worker due to CORS restrictions
+  '/buy.png', '/cat.png', '/add.png', '/WCdark.png'
+];
+
+// Files that should always be fetched fresh (HTML, JS, CSS)
+const ALWAYS_NETWORK = [
+  '/index.html',
+  '/sw.js',
+  '.js',
+  '.css'
 ];
 
 self.addEventListener('install', (event) => {
+  console.log('[SW] Installing service worker version', CACHE_VERSION);
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Cache assets that don't have CORS restrictions
+      // Only cache persistent assets (images), not HTML/JS
       return Promise.allSettled(
-        ASSETS.map(asset => 
+        PERSISTENT_ASSETS.map(asset => 
           cache.add(asset).catch(err => {
-            console.warn(`Failed to cache ${asset}:`, err);
+            console.warn(`[SW] Failed to cache ${asset}:`, err);
           })
         )
       );
+    }).then(() => {
+      // Force immediate activation
+      return self.skipWaiting();
     })
   );
+  // Force immediate activation
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating service worker version', CACHE_VERSION);
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(k => {
-        if (k !== CACHE_NAME) {
-          console.log('Deleting old cache:', k);
+    Promise.all([
+      // Delete ALL caches first (aggressive cache clearing)
+      caches.keys().then(keys => {
+        console.log('[SW] Found caches:', keys);
+        return Promise.all(keys.map(k => {
+          console.log('[SW] Deleting cache:', k);
           return caches.delete(k);
-        }
-        return null;
-      }))
-    )
+        }));
+      }).then(() => {
+        // Re-create the new cache
+        return caches.open(CACHE_NAME);
+      }),
+      // Claim all clients immediately (force takeover)
+      self.clients.claim(),
+      // Notify all clients about the update
+      self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'SW_UPDATED',
+            version: CACHE_VERSION,
+            appVersion: APP_VERSION,
+            forceReload: true
+          });
+        });
+      })
+    ])
   );
-  // Force take control immediately
+  // Force immediate activation without waiting
   self.clients.claim();
-  // Force skip waiting
-  self.skipWaiting();
 });
 
-// Network-first עם נפילה ל־cache
+// Enhanced fetch handler with version-aware caching
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
   
-  // Cache images aggressively
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return;
+  }
+  
+  // IMPORTANT: Skip external URLs (CDNs, Firebase, etc.) - let browser handle them
+  // Only intercept same-origin requests
+  if (url.origin !== self.location.origin) {
+    // Don't intercept external requests - let them pass through normally
+    return;
+  }
+  
+  // Always fetch HTML, JS, CSS from network (bypass cache for updates)
+  const shouldAlwaysFetch = ALWAYS_NETWORK.some(pattern => {
+    return url.pathname === pattern || url.pathname.endsWith(pattern);
+  });
+  
+  if (shouldAlwaysFetch) {
+    // Network-only for HTML/JS/CSS - always get fresh version
+    event.respondWith(
+      fetch(request, {
+        cache: 'no-store' // Bypass HTTP cache (no custom headers for same-origin)
+      }).catch(() => {
+        // Only fall back to cache if network completely fails
+        return caches.match(request);
+      })
+    );
+    return;
+  }
+  
+  // Cache images persistently (cache-first with network update)
   if(request.destination === 'image' || url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)) {
     event.respondWith(
       caches.match(request).then((cached) => {
-        if(cached) return cached;
+        // Return cached image immediately if available
+        if(cached) {
+          // Update cache in background
+          fetch(request).then((resp) => {
+            if(resp.ok) {
+              const respClone = resp.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, respClone)).catch(()=>{});
+            }
+          }).catch(() => {});
+          return cached;
+        }
+        // If not cached, fetch and cache
         return fetch(request).then((resp) => {
           if(resp.ok) {
             const respClone = resp.clone();
@@ -60,17 +132,20 @@ self.addEventListener('fetch', (event) => {
           return resp;
         }).catch(() => {
           // Return placeholder if fetch fails
-          return caches.match('/buy.png').then((placeholder) => placeholder || new Response('', {status: 404}));
+          return caches.match('/GSH.png').then((placeholder) => placeholder || new Response('', {status: 404}));
         });
       })
     );
     return;
   }
   
-  // For other resources, network-first
+  // For other same-origin resources, network-first with cache fallback
   event.respondWith(
-    fetch(request)
+    fetch(request, {
+      cache: 'no-cache' // Always check network first
+    })
       .then((resp) => {
+        // Cache successful responses
         if(resp.ok) {
           const respClone = resp.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(request, respClone)).catch(()=>{});
