@@ -325,11 +325,10 @@ nav.fixed-footer {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
-  padding: 16px 32px 8px 32px !important;
-  min-height: 100% !important;
+  /* Tighter padding so categories + badges fit fully inside footer height */
+  padding: 6px 16px 6px 16px !important;
   overflow-x: auto !important;
-  overflow-y: visible !important;
-  overflow: visible !important;
+  overflow-y: hidden !important;
   position: relative !important;
   margin: 0 !important;
   -webkit-overflow-scrolling: touch !important;
@@ -916,19 +915,10 @@ textarea::placeholder {
   margin-bottom: 0;
 }
 
-/* Tasks timeline: fit within viewport height without showing a vertical scrollbar */
+/* Tasks timeline: keep content within viewport height and scroll inside the section if needed */
 #tasksGanttView {
-  /* Header + app bar + some padding ≈ 160px reserved */
-  height: calc(100vh - var(--footer-h) - 160px);
-  overflow-y: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Ensure the gantt container uses remaining vertical space inside tasksGanttView */
-#tasksGanttView .gantt-container {
-  flex: 1 1 auto;
-  min-height: 0;
+  max-height: calc(100vh - var(--footer-h) - 110px);
+  overflow-y: auto;
 }
 
 /* Responsive padding for larger screens - M3 guidelines */
@@ -972,10 +962,10 @@ textarea::placeholder {
 .gantt-container {
   overflow-x: auto;
   overflow-y: visible;
-  /* Full-bleed width: fill the entire viewport width even inside centered layout */
-  width: 100vw;
-  max-width: 100vw;
-  margin: 0.5rem calc(50% - 50vw) 1rem calc(50% - 50vw);
+  /* Fit within central content column */
+  width: 100%;
+  max-width: 100%;
+  margin: 1rem 0;
   background: var(--md-sys-color-surface);
   border-radius: var(--md-shape-corner-large);
   padding: 1rem;
