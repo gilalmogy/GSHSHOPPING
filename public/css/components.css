@@ -247,14 +247,14 @@ nav.fixed-footer {
   padding-bottom: env(safe-area-inset-bottom, 0px);
   color: var(--text);
   box-shadow: var(--md-elevation-3);
-  overflow: visible !important;
+  /* Horizontal scroll only if categories overflow; never vertical scroll */
   overflow-x: auto !important;
-  overflow-y: visible !important;
+  overflow-y: hidden !important;
   contain: none !important;
   clip: none !important;
   clip-path: none !important;
-  padding-top: 12px !important;
-  box-sizing: content-box !important;
+  padding-top: 8px !important;
+  box-sizing: border-box !important;
 }
 
 /* Category Selection - Material Design 3 State Layer */
@@ -916,10 +916,19 @@ textarea::placeholder {
   margin-bottom: 0;
 }
 
-/* Tasks timeline: keep content within viewport height and scroll inside the section if needed */
+/* Tasks timeline: fit within viewport height without showing a vertical scrollbar */
 #tasksGanttView {
-  max-height: calc(100vh - var(--footer-h) - 110px);
-  overflow-y: auto;
+  /* Header + app bar + some padding ≈ 160px reserved */
+  height: calc(100vh - var(--footer-h) - 160px);
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure the gantt container uses remaining vertical space inside tasksGanttView */
+#tasksGanttView .gantt-container {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* Responsive padding for larger screens - M3 guidelines */
