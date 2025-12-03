@@ -1165,10 +1165,18 @@
             <input id="reminderTitle" type="text" placeholder="תזכורת..." class="w-full border rounded px-3 py-2" style="background:var(--input-bg); color:var(--input-text); border-color:var(--border);">
           </div>
           <div id="reminderTimeSection">
-            <label class="text-sm">תאריך ושעה</label>
-            <input id="reminderTime" type="datetime-local" class="w-full border rounded px-3 py-2" style="background:var(--input-bg); color:var(--input-text); border-color:var(--border);">
+            <label class="text-sm block mb-1">תאריך ושעה</label>
+            <div class="flex flex-col gap-2">
+              <input id="reminderTime" type="datetime-local" class="w-full border rounded px-3 py-2" style="background:var(--input-bg); color:var(--input-text); border-color:var(--border);">
+              <!-- Quick time presets -->
+              <div class="flex flex-wrap gap-2">
+                <button id="reminderNowBtn" class="text-xs px-3 py-1.5 rounded-full border" style="border-color:var(--border); color:var(--text); background:var(--md-sys-color-surface-variant);">עכשיו</button>
+                <button id="reminderTomorrowBtn" class="text-xs px-3 py-1.5 rounded-full border" style="border-color:var(--border); color:var(--text); background:var(--md-sys-color-surface-variant);">מחר</button>
+                <button id="reminderWeekBtn" class="text-xs px-3 py-1.5 rounded-full border" style="border-color:var(--border); color:var(--text); background:var(--md-sys-color-surface-variant);">שבוע קדימה</button>
+              </div>
             </div>
-            <div>
+          </div>
+          <div>
             <label class="text-sm">קטגוריה</label>
             <select id="reminderCategory" class="w-full border rounded px-3 py-2" style="background:var(--input-bg); color:var(--input-text); border-color:var(--border);"></select>
           </div>

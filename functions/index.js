@@ -170,33 +170,14 @@ exports.sendPushNotification = functions.https.onCall(async (data, context) => {
 });
 
 /**
- * Firestore trigger: Send push notification when reminder is due
- * Triggered when a reminder document is created or updated with status 'due'
+ * Legacy Firestore trigger for reminders.
+ * Kept as a no-op so existing deployed functions are not deleted during deploys.
+ * All actual reminder delivery is handled by the scheduled `checkDueReminders` job.
  */
 exports.onReminderDue = functions.firestore
   .document('households/{householdId}/reminders/{reminderId}')
-  .onUpdate(async (change, context) => {
-    const before = change.before.data();
-    const after = change.after.data();
-    
-    // Check if reminder just became due
-    if (!before.isDue && after.isDue && after.status === 'active') {
-      const householdId = context.params.householdId;
-      const reminderId = context.params.reminderId;
-      
-      const title = after.title || 'תזכורת';
-      const body = 'הגיע הזמן!';
-      
-      const notificationData = {
-        reminderId: reminderId,
-        type: 'reminder',
-        url: '/#reminders'
-      };
-      
-      // Send to household members
-      await sendPushToHousehold(householdId, title, body, notificationData);
-    }
-    
+  .onWrite(async (change, context) => {
+    console.log('onReminderDue (legacy) triggered for', context.params);
     return null;
   });
 
@@ -251,19 +232,19 @@ exports.checkDueReminders = functions.pubsub
           .doc(householdId)
           .collection('reminders');
         
-        // Query active reminders with due time <= now
+        // Query time-based reminders with due time <= now that are not done yet
         const dueReminders = await remindersRef
-          .where('status', '==', 'active')
+          .where('type', '==', 'time')
+          .where('isDone', '==', false)
           .where('time', '<=', now)
-          .where('isDue', '==', false)
           .get();
         
         for (const reminderDoc of dueReminders.docs) {
           const reminder = reminderDoc.data();
           
-          // Mark as due and send notification
+          // Mark as done (same behavior as client-side checker) and send notification
           await reminderDoc.ref.update({
-            isDue: true,
+            isDone: true,
             notifiedAt: now
           });
           

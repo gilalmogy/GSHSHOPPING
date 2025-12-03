@@ -325,8 +325,8 @@ nav.fixed-footer {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
-  /* Tighter padding so categories + badges fit fully inside footer height */
-  padding: 6px 16px 6px 16px !important;
+  /* Extra top padding so badges are fully inside the footer, on all screens */
+  padding: 14px 16px 6px 16px !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   position: relative !important;

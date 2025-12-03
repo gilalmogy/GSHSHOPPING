@@ -1,7 +1,8 @@
 /* Material Design 3 (Material You) Design Tokens */
 
 :root {
-  --footer-h: 92px;
+  /* Slightly taller footer so category icons + labels + badges fit without clipping */
+  --footer-h: 104px;
   
   /* Material Design 3 Color System - Light Mode */
   --md-sys-color-primary: #6750A4;

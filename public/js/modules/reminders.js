@@ -48,6 +48,9 @@ const selectors = {
   reminderPreview: '#reminderPreview',
   reminderSave: '#reminderSave',
   reminderDelete: '#reminderDelete',
+  reminderNowBtn: '#reminderNowBtn',
+  reminderTomorrowBtn: '#reminderTomorrowBtn',
+  reminderWeekBtn: '#reminderWeekBtn',
   reminderCatModal: '#reminderCatModal',
   reminderCatId: '#reminderCatId',
   reminderCatName: '#reminderCatName',
@@ -139,6 +142,41 @@ function wireEvents() {
   dom.reminderCatModal
     ?.querySelectorAll('.color-option')
     .forEach(btn => btn.addEventListener('click', () => selectReminderCategoryColor(btn)));
+
+  // Quick time preset buttons for reminder time
+  const setReminderTime = (date) => {
+    if (!dom.reminderTime) return;
+    const pad = (n) => String(n).padStart(2, '0');
+    const y = date.getFullYear();
+    const m = pad(date.getMonth() + 1);
+    const d = pad(date.getDate());
+    const h = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    dom.reminderTime.value = `${y}-${m}-${d}T${h}:${min}`;
+  };
+
+  dom.reminderNowBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const now = new Date();
+    now.setSeconds(0, 0);
+    setReminderTime(now);
+  });
+
+  dom.reminderTomorrowBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setSeconds(0, 0);
+    setReminderTime(d);
+  });
+
+  dom.reminderWeekBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    d.setSeconds(0, 0);
+    setReminderTime(d);
+  });
 }
 
 function handleViewChange(view) {
