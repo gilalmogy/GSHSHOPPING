@@ -1152,13 +1152,10 @@ function renderGantt() {
     console.warn('Gantt timeline element not found');
     return;
   }
-  // Use saved direction preference
+  // Use saved direction preference for header/content only.
+  // IMPORTANT: Keep the scroll container in LTR so scrollLeft math is stable.
   timeline.setAttribute('dir', ganttDirection);
   timeline.style.direction = ganttDirection;
-  dom.ganttContainer?.setAttribute('dir', ganttDirection);
-  dom.ganttContainer?.style.setProperty('direction', ganttDirection, 'important');
-  dom.ganttFixedContainer?.setAttribute('dir', ganttDirection);
-  dom.ganttFixedContainer?.style.setProperty('direction', ganttDirection, 'important');
 
   // Only render content if we're on the gantt tab and view is visible
   if (currentTasksTab !== 'gantt') {
@@ -2093,18 +2090,14 @@ function scrollToDate(targetDate, retryCount = 0) {
     const viewportCenter = container.clientWidth / 2;
     let targetScrollLeft = datePosition - viewportCenter + (dayCellWidth / 2);
     
-    // Clamp to valid scroll range (LTR base)
+    // Clamp to valid scroll range (assume LTR scroll coordinates)
     const maxScroll = Math.max(0, container.scrollWidth - container.clientWidth);
     targetScrollLeft = Math.max(0, Math.min(targetScrollLeft, maxScroll));
     
-    // If RTL, mirror the scroll position from the right edge
-    const isRTL = ganttDirection === 'rtl';
-    const finalScrollLeft = isRTL ? (maxScroll - targetScrollLeft) : targetScrollLeft;
-    
-    // Smooth scroll to position
+    // Smooth scroll to position (same math for LTR/RTL, container is LTR)
     if (container.scrollTo) {
       container.scrollTo({
-        left: finalScrollLeft,
+        left: targetScrollLeft,
         behavior: 'smooth'
       });
     } else {
