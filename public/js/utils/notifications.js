@@ -13,6 +13,11 @@ let fcmMessaging = null;
  * @param {DocumentReference} householdRef - Firestore reference to the current household
  */
 export async function initNotifications(householdRef = null) {
+  // If we've already registered SW and have a token with granted permission, skip re-init
+  if (serviceWorkerRegistration && notificationPermission === 'granted' && fcmToken) {
+    console.log('Notifications already initialized - skipping re-init');
+    return true;
+  }
   // Store household reference if provided
   if (householdRef) {
     currentHouseholdRef = householdRef;

@@ -2642,16 +2642,19 @@
     window.forceAppUpdate = forceUpdate;
 
     /* ---------------- PUSH NOTIFICATIONS ---------------- */
-    // Initialize notifications on app load (householdRef is available here)
+    // Initialize notifications as soon as main app state is ready (PC + mobile)
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', async () => {
-        const initialized = await initNotifications(householdRef);
-        if (initialized) {
-          console.log('Push notifications initialized');
-          // Update UI if needed
+      initNotifications(householdRef)
+        .then((initialized) => {
+          if (initialized) {
+            console.log('Push notifications initialized (startup)');
+          }
           updateNotificationStatus();
-        }
-      });
+        })
+        .catch((err) => {
+          console.error('Failed to initialize notifications:', err);
+          updateNotificationStatus();
+        });
     }
     
     function updateNotificationStatus() {
