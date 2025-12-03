@@ -85,6 +85,8 @@ export function initReminders({
   loadReminderCategories();
   loadReminders();
   handleViewChange(getCurrentViewFn());
+  // Start global reminder checking so notifications work from any view
+  startReminderChecking();
 
   // Make openReminderEditor globally accessible
   if (typeof window !== 'undefined') {
@@ -152,11 +154,9 @@ function handleViewChange(view) {
     }
     renderRemindersCategoriesBar();
     renderReminders();
-    startReminderChecking();
   } else {
     // Hide reminders categories when switching to other views
     hideRemindersNav();
-    stopReminderChecking();
     // Also clear the categories list to prevent showing wrong categories
     if (dom.remindersCategoriesList) {
       dom.remindersCategoriesList.innerHTML = '';
